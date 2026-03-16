@@ -10,9 +10,10 @@ import {
   DollarSign,
   Calendar,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "next/router";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { API_BASE_URL } from "@/lib/apiBase";
 const index = () => {
   const [formData, setFormData] = useState({
     title: "",
@@ -47,7 +48,7 @@ const index = () => {
     }
     try {
       setisloading(true);
-      const res = await axios.post("http://localhost:5000/api/internship", formData);
+      await axios.post(`${API_BASE_URL}/api/internship`, formData);
       toast.success("job posted successfuly");
       router.push("/adminpanel");
     } catch (error) {

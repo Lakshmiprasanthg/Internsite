@@ -14,6 +14,7 @@ import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
+import { API_BASE_URL } from "@/lib/apiBase";
 // export const internships = [
 //   {
 //     _id: "1",
@@ -78,7 +79,7 @@ const index = () => {
   useEffect(()=>{
     const fetchdata=async()=>{
       try {
-        const res=await axios.get( `http://localhost:5000/api/internship/${id}`)     
+        const res=await axios.get(`${API_BASE_URL}/api/internship/${id}`)
         setinternship(res.data)
       } catch (error) {
         console.log(error)
@@ -115,7 +116,7 @@ const index = () => {
         Application:id,
         availability
       }
-      await axios.post("http://localhost:5000/api/application",applicationdata)
+      await axios.post(`${API_BASE_URL}/api/application`,applicationdata)
       toast.success("Application submit successfully")
       router.push('/internship')
     } catch (error) {

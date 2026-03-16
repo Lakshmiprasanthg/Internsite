@@ -16,6 +16,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import { useSelector } from "react-redux";
 import { selectuser } from "@/Feature/Userslice";
+import { API_BASE_URL } from "@/lib/apiBase";
 // const filteredJobs = [
 //     {
 //       _id: "101",
@@ -124,7 +125,7 @@ const index = () => {
   useEffect(() => {
     const fetchdata = async () => {
       try {
-        const res = await axios.get(`http://localhost:5000/api/job/${id}`);
+        const res = await axios.get(`${API_BASE_URL}/api/job/${id}`);
         setjob(res.data);
       } catch (error) {
         console.log(error);
@@ -162,7 +163,7 @@ const index = () => {
         availability,
       };
       await axios.post(
-        "http://localhost:5000/api/application",
+        `${API_BASE_URL}/api/application`,
         applicationdata
       );
       toast.success("Application submit successfully");

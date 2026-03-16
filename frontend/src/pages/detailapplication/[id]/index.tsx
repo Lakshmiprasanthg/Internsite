@@ -2,6 +2,7 @@ import axios from "axios";
 import { Building2, Calendar, FileText, Loader2, User } from "lucide-react";
 import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
+import { API_BASE_URL } from "@/lib/apiBase";
 
 const index = () => {
   const router = useRouter();
@@ -13,7 +14,7 @@ const index = () => {
       try {
         setloading(true);
         const res = await axios.get(
-          `http://localhost:5000/api/application/${id}`
+          `${API_BASE_URL}/api/application/${id}`
         );
         console.log(res.data);
         setdata(res.data);

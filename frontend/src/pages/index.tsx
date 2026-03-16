@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import axios from "axios";
+import { API_BASE_URL } from "@/lib/apiBase";
 
 export default function SvgSlider() {
   const categories = [
@@ -119,8 +120,8 @@ export default function SvgSlider() {
     const fetchdata = async () => {
       try {
         const [internshipres, jobres] = await Promise.all([
-          axios.get("http://localhost:5000/api/internship"),
-          axios.get("http://localhost:5000/api/job"),
+          axios.get(`${API_BASE_URL}/api/internship`),
+          axios.get(`${API_BASE_URL}/api/job`),
         ]);
         setinternship(internshipres.data);
         setjob(jobres.data);

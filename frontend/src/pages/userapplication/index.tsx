@@ -12,6 +12,7 @@ import Link from "next/link";
 import axios from "axios";
 import { selectuser } from "@/Feature/Userslice";
 import { useSelector } from "react-redux";
+import { API_BASE_URL } from "@/lib/apiBase";
 const Applications = [
   {
     _id: "1",
@@ -63,7 +64,7 @@ const index = () => {
   useEffect(() => {
     const fetchdata = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/api/application");
+        const res = await axios.get(`${API_BASE_URL}/api/application`);
         setdata(res.data);
       } catch (error) {
         console.log(error);

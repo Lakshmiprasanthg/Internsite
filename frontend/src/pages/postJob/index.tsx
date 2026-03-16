@@ -12,7 +12,8 @@ import {
 } from "lucide-react";
 import { toast } from "react-toastify";
 import axios from "axios";
-import { useRouter } from "next/navigation";
+import { useRouter } from "next/router";
+import { API_BASE_URL } from "@/lib/apiBase";
 const index = () => {
   const [formData, setFormData] = useState({
     title: "",
@@ -47,7 +48,7 @@ const index = () => {
     }
     try {
       setisloading(true);
-      const res = await axios.post("http://localhost:5000/api/job", formData);
+      await axios.post(`${API_BASE_URL}/api/job`, formData);
       toast.success("job posted successfuly");
       router.push("/adminpanel");
     } catch (error) {

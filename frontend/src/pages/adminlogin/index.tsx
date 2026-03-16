@@ -5,6 +5,7 @@ import React, { useState } from "react";
 import { toast } from "react-toastify";
 import { useDispatch } from "react-redux";
 import { adminLogin } from "@/Feature/Userslice";
+import { API_BASE_URL } from "@/lib/apiBase";
 
 const index = () => {
   const [formadata, setformadata] = useState({
@@ -30,7 +31,7 @@ const index = () => {
     try {
       setisloading(true);
       await axios.post(
-        "http://localhost:5000/api/admin/adminlogin",
+        `${API_BASE_URL}/api/admin/adminlogin`,
         formadata
       );
       toast.success("logged in successfuly");

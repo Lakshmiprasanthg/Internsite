@@ -11,6 +11,7 @@ import {
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
+import { API_BASE_URL } from "@/lib/apiBase";
 // const Applications = [
 //   {
 //     _id: "1",
@@ -54,7 +55,7 @@ const index = () => {
   useEffect(() => {
     const fetchdata = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/api/application");
+        const res = await axios.get(`${API_BASE_URL}/api/application`);
         setdata(res.data);
       } catch (error) {
         console.log(error);
@@ -74,7 +75,7 @@ const index = () => {
   const handleacceptandreject = async (id: any, action: any) => {
     try {
       const res = await axios.put(
-        `http://localhost:5000/api/application/${id}`,
+        `${API_BASE_URL}/api/application/${id}`,
         { action }
       );
       const updateappliacrtion = data.map((app: any) =>

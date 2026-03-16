@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
+import { API_BASE_URL } from "@/lib/apiBase";
 
 const index = () => {
   // const filteredJobs = [
@@ -127,7 +128,7 @@ const index = () => {
   useEffect(()=>{
     const fetchdata=async()=>{
       try {
-        const res=await axios.get( "http://localhost:5000/api/job")     
+        const res=await axios.get(`${API_BASE_URL}/api/job`)
         setjob(res.data)
         setfilteredjobs(res.data)
       } catch (error) {

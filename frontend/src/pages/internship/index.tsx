@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
+import { API_BASE_URL } from "@/lib/apiBase";
 // const internshipData = [
 //   {
 //     _id: "1",
@@ -58,7 +59,7 @@ const index = () => {
   useEffect(()=>{
     const fetchdata=async()=>{
       try {
-        const res=await axios.get( "http://localhost:5000/api/internship")     
+        const res=await axios.get(`${API_BASE_URL}/api/internship`)
         setinternship(res.data)
         setfilteredInternships(res.data)
       } catch (error) {
