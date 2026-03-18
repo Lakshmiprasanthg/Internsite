@@ -7,17 +7,34 @@ const { connect } = require("./db");
 const router = require("./Routes/index");
 const port = process.env.PORT || 5000;
 
+const normalizeOrigin = (origin = "") => origin.trim().replace(/\/+$/, "");
+
 const allowedOrigins = (
   process.env.FRONTEND_ORIGIN || "http://localhost:3000,http://localhost:3001"
 )
   .split(",")
-  .map((origin) => origin.trim())
+  .map((origin) => normalizeOrigin(origin))
   .filter(Boolean);
+
+const allowVercelPreviews = process.env.ALLOW_VERCEL_PREVIEWS === "true";
+
+const isVercelPreviewOrigin = (origin) =>
+  /^https:\/\/[a-z0-9-]+\.vercel\.app$/i.test(origin);
 
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
+      const normalizedOrigin = normalizeOrigin(origin);
+
+      if (!normalizedOrigin) {
+        return callback(null, true);
+      }
+
+      if (allowedOrigins.includes(normalizedOrigin)) {
+        return callback(null, true);
+      }
+
+      if (allowVercelPreviews && isVercelPreviewOrigin(normalizedOrigin)) {
         return callback(null, true);
       }
 
