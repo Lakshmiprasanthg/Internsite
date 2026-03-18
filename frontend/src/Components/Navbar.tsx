@@ -2,21 +2,33 @@ import React from "react";
 import logo from "../Assets/67_human_logo.jpg";
 import Link from "next/link";
 import { auth, provider } from "../firebase/firebase";
-import { Search } from "lucide-react";
+import { ArrowLeft, Search } from "lucide-react";
 import { signInWithPopup, signInWithRedirect, signOut } from "firebase/auth";
 import { toast } from "react-toastify";
 import { useDispatch, useSelector } from "react-redux";
 import { adminLogout, logout, selectIsAdmin, selectuser } from "@/Feature/Userslice";
+import { useRouter } from "next/router";
 interface User {
   name: string;
   email: string;
   photo: string;
 }
 const Navbar = () => {
+  const router = useRouter();
   const dispatch = useDispatch();
   const user = useSelector(selectuser);
   const isAdmin = useSelector(selectIsAdmin);
   const [isGoogleLoading, setIsGoogleLoading] = React.useState(false);
+  const showBackButton = router.pathname !== "/";
+
+  const handleBack = () => {
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      router.back();
+      return;
+    }
+
+    router.push("/");
+  };
 
   const handlelogin = async () => {
     if (isGoogleLoading) {
@@ -82,7 +94,18 @@ const Navbar = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-20 items-center">
             {/* Logo */}
-            <div className="flex-shrink-0">
+            <div className="flex items-center space-x-3 flex-shrink-0">
+              {showBackButton && (
+                <button
+                  type="button"
+                  onClick={handleBack}
+                  className="h-10 w-10 inline-flex items-center justify-center rounded-xl border border-gray-200 text-gray-600 hover:text-blue-600 hover:border-blue-400 hover:bg-blue-50 transition-all duration-200"
+                  aria-label="Go back"
+                  title="Go back"
+                >
+                  <ArrowLeft size={18} />
+                </button>
+              )}
               <Link href="/" className="flex items-center space-x-2 group">
                 <img 
                   src={logo.src} 
