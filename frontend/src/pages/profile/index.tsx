@@ -1,13 +1,32 @@
 import { selectuser } from "@/Feature/Userslice";
-import { ExternalLink, Mail, User } from "lucide-react";
+import { API_BASE_URL } from "@/lib/apiBase";
+import axios from "axios";
+import {
+  ExternalLink,
+  Mail,
+  User,
+} from "lucide-react";
 import Link from "next/link";
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useSelector } from "react-redux";
-interface User {
-  name: string;
-  email: string;
-  photo: string;
-}
+
+type ApplicationRecord = {
+  _id: string;
+  company?: string;
+  category?: string;
+  status?: string;
+  createdAt?: string;
+  user?: {
+    name?: string;
+    email?: string;
+  };
+};
+
+const normalizeStatus = (status: string | undefined) => {
+  const normalized = String(status || "pending").toLowerCase();
+  return normalized === "approved" ? "accepted" : normalized;
+};
+
 const index = () => {
   // const [user, setuser] = useState<User | null>({
   //   name: "Rahul",
@@ -15,7 +34,57 @@ const index = () => {
   //   photo:
   //     "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=64&h=64&fit=crop&crop=faces",
   // });
-  const user=useSelector(selectuser)
+  const user = useSelector(selectuser);
+  const [applications, setApplications] = useState<ApplicationRecord[]>([]);
+
+  useEffect(() => {
+    const fetchUserApplications = async () => {
+      try {
+        const response = await axios.get(`${API_BASE_URL}/api/application`);
+        setApplications(Array.isArray(response.data) ? response.data : []);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    fetchUserApplications();
+  }, []);
+
+  const userApplications = useMemo(() => {
+    const userEmail = String(user?.email || "").toLowerCase();
+    const userName = String(user?.name || "").toLowerCase();
+
+    return applications.filter((application) => {
+      const applicationEmail = String(application.user?.email || "").toLowerCase();
+      const applicationName = String(application.user?.name || "").toLowerCase();
+
+      if (userEmail && applicationEmail) {
+        return userEmail === applicationEmail;
+      }
+
+      return userName && userName === applicationName;
+    });
+  }, [applications, user?.email, user?.name]);
+
+  const summary = useMemo(() => {
+    return userApplications.reduce(
+      (acc, application) => {
+        const status = normalizeStatus(application.status);
+
+        if (status === "accepted") {
+          acc.accepted += 1;
+        } else if (status === "rejected") {
+          acc.rejected += 1;
+        } else {
+          acc.pending += 1;
+        }
+
+        return acc;
+      },
+      { accepted: 0, rejected: 0, pending: 0 }
+    );
+  }, [userApplications]);
+
   return (
     <div className="min-h-screen bg-gray-50 py-12">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -53,15 +122,15 @@ const index = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div className="bg-blue-50 rounded-lg p-4 text-center">
                   <span className="text-blue-600 font-semibold text-2xl">
-                    0
+                    {summary.pending}
                   </span>
                   <p className="text-blue-600 text-sm mt-1">
-                    Active Applications
+                    Pending Applications
                   </p>
                 </div>
                 <div className="bg-green-50 rounded-lg p-4 text-center">
                   <span className="text-green-600 font-semibold text-2xl">
-                    0
+                    {summary.accepted}
                   </span>
                   <p className="text-green-600 text-sm mt-1">
                     Accepted Applications

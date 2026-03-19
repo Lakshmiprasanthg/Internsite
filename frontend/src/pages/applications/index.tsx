@@ -38,9 +38,14 @@ import { API_BASE_URL } from "@/lib/apiBase";
 //     status: "rejected",
 //   },
 // ];
+const normalizeStatus = (status: any) => {
+  const normalized = String(status || "pending").toLowerCase();
+  return normalized === "approved" ? "accepted" : normalized;
+};
+
 const getStatusColor = (status: any) => {
-  switch (status.toLowerCase()) {
-    case "approved":
+  switch (normalizeStatus(status)) {
+    case "accepted":
       return "bg-green-100 text-green-800";
     case "rejected":
       return "bg-red-100 text-red-800";
@@ -66,11 +71,17 @@ const index = () => {
   // console.log(data);
   const filteredapplications = data.filter((application: any) => {
     const searchmatch =
-      application.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      application.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      application.user.name.toLowerCase().includes(searchTerm.toLowerCase());
+      String(application.company || "")
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      String(application.category || "")
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      String(application.user?.name || "")
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
     if (filter === "all") return searchmatch;
-    return searchmatch && application.status.toLowerCase() === filter;
+    return searchmatch && normalizeStatus(application.status) === filter;
   });
   const handleacceptandreject = async (id: any, action: any) => {
     try {
@@ -137,14 +148,14 @@ const index = () => {
                   Pending
                 </button>
                 <button
-                  onClick={() => setFilter("approved")}
+                  onClick={() => setFilter("accepted")}
                   className={`px-4 py-2 rounded-lg text-sm font-medium ${
-                    filter === "approved"
+                    filter === "accepted"
                       ? "bg-green-100 text-green-800"
                       : "bg-gray-100 text-gray-800"
                   }`}
                 >
-                  Approved
+                  Accepted
                 </button>
                 <button
                   onClick={() => setFilter("rejected")}
@@ -246,7 +257,7 @@ const index = () => {
                           application.status
                         )}`}
                       >
-                        {application.status}
+                        {normalizeStatus(application.status)}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -262,7 +273,12 @@ const index = () => {
                             handleacceptandreject(application._id, "accepted");
                             /* Handle approve */
                           }}
-                          className="text-green-600 hover:text-green-900"
+                          disabled={normalizeStatus(application.status) === "accepted"}
+                          className={`text-green-600 hover:text-green-900 ${
+                            normalizeStatus(application.status) === "accepted"
+                              ? "opacity-40 cursor-not-allowed"
+                              : ""
+                          }`}
                         >
                           <CheckCircle2 className="h-5 w-5" />
                         </button>
@@ -271,7 +287,12 @@ const index = () => {
                             handleacceptandreject(application._id, "rejected");
                             /* Handle reject */
                           }}
-                          className="text-red-600 hover:text-red-900"
+                          disabled={normalizeStatus(application.status) === "rejected"}
+                          className={`text-red-600 hover:text-red-900 ${
+                            normalizeStatus(application.status) === "rejected"
+                              ? "opacity-40 cursor-not-allowed"
+                              : ""
+                          }`}
                         >
                           <XCircle className="h-5 w-5" />
                         </button>

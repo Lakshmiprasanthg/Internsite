@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { 
   Briefcase, 
   Mail, 
@@ -8,13 +8,80 @@ import {
   Settings
 } from 'lucide-react';
 import Link from 'next/link';
+import axios from 'axios';
+import { API_BASE_URL } from '@/lib/apiBase';
+
+const normalizeStatus = (status: string | undefined) => {
+  const normalized = String(status || 'pending').toLowerCase();
+  return normalized === 'approved' ? 'accepted' : normalized;
+};
+
 const index = () => {
-    const stats = [
-        { label: 'Total Applications', value: '2,345', change: '+12%', changeType: 'positive' },
-        { label: 'Active Jobs', value: '45', change: '+3%', changeType: 'positive' },
-        { label: 'Active Internships', value: '89', change: '+24%', changeType: 'positive' },
-        { label: 'Conversion Rate', value: '5.25%', change: '-1.3%', changeType: 'negative' },
-      ];
+    const [counts, setCounts] = useState({
+      totalApplications: 0,
+      activeJobs: 0,
+      activeInternships: 0,
+      acceptedApplications: 0,
+    });
+
+    useEffect(() => {
+      const fetchDashboardCounts = async () => {
+        try {
+          const [applicationRes, jobRes, internshipRes] = await Promise.all([
+            axios.get(`${API_BASE_URL}/api/application`),
+            axios.get(`${API_BASE_URL}/api/job`),
+            axios.get(`${API_BASE_URL}/api/internship`),
+          ]);
+
+          const applications = Array.isArray(applicationRes.data)
+            ? applicationRes.data
+            : [];
+          const acceptedApplications = applications.filter((item: any) => {
+            const status = normalizeStatus(item?.status);
+            return status === 'accepted';
+          }).length;
+
+          setCounts({
+            totalApplications: applications.length,
+            activeJobs: Array.isArray(jobRes.data) ? jobRes.data.length : 0,
+            activeInternships: Array.isArray(internshipRes.data)
+              ? internshipRes.data.length
+              : 0,
+            acceptedApplications,
+          });
+        } catch (error) {
+          console.error(error);
+        }
+      };
+
+      fetchDashboardCounts();
+    }, []);
+
+    const stats = useMemo(
+      () => [
+        {
+          label: 'Total Applications',
+          value: counts.totalApplications,
+          subtitle: 'Current records in applications',
+        },
+        {
+          label: 'Active Jobs',
+          value: counts.activeJobs,
+          subtitle: 'Current records in jobs',
+        },
+        {
+          label: 'Active Internships',
+          value: counts.activeInternships,
+          subtitle: 'Current records in internships',
+        },
+        {
+          label: 'Accepted Applications',
+          value: counts.acceptedApplications,
+          subtitle: 'Selected candidates so far',
+        },
+      ],
+      [counts]
+    );
     
       const menuItems = [
         {
@@ -80,22 +147,14 @@ const index = () => {
             key={index}
             className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-gray-100"
           >
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <p className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">
-                  {stat.label}
-                </p>
-                <p className="text-4xl font-bold text-gray-900">
-                  {stat.value}
-                </p>
-              </div>
-              <div className={`text-sm font-bold px-3 py-1 rounded-lg ${
-                stat.changeType === 'positive' 
-                  ? 'bg-green-100 text-green-700' 
-                  : 'bg-red-100 text-red-700'
-              }`}>
-                {stat.change}
-              </div>
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                {stat.label}
+              </p>
+              <p className="text-4xl font-bold text-gray-900">
+                {stat.value}
+              </p>
+              <p className="mt-2 text-xs text-gray-500">{stat.subtitle}</p>
             </div>
           </div>
         ))}

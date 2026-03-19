@@ -3,12 +3,61 @@ import Navbar from "@/Components/Navbar";
 import "@/styles/globals.css";
 import type { AppProps } from "next/app";
 import { store } from "../store/store";
-import { Provider, useDispatch } from "react-redux";
+import { Provider, useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
 import { auth } from "@/firebase/firebase";
-import { adminLogin, login, logout } from "@/Feature/Userslice";
+import {
+  adminLogin,
+  adminLogout,
+  login,
+  logout,
+  selectIsAdmin,
+  selectuser,
+} from "@/Feature/Userslice";
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { useRouter } from "next/router";
+
+const ADMIN_ONLY_ROUTES = [
+  "/adminpanel",
+  "/applications",
+  "/postJob",
+  "/postInternship",
+  "/users",
+  "/analytics",
+  "/settings",
+  "/detailapplication/[id]",
+];
+
+function RouteAccessGuard() {
+  const router = useRouter();
+  const isAdmin = useSelector(selectIsAdmin);
+  const user = useSelector(selectuser);
+
+  useEffect(() => {
+    if (!router.isReady) {
+      return;
+    }
+
+    const isAdminOnlyRoute = ADMIN_ONLY_ROUTES.includes(router.pathname);
+
+    if (isAdminOnlyRoute && !isAdmin) {
+      if (user) {
+        router.replace("/");
+      } else {
+        router.replace("/adminlogin");
+      }
+      return;
+    }
+
+    if (router.pathname === "/adminlogin" && user && !isAdmin) {
+      router.replace("/");
+    }
+  }, [router, isAdmin, user]);
+
+  return null;
+}
+
 export default function App({ Component, pageProps }: AppProps) {
   function AuthListener() {
     const dispatch = useDispatch();
@@ -17,6 +66,8 @@ export default function App({ Component, pageProps }: AppProps) {
         const isAdminLoggedIn = localStorage.getItem("isAdminLoggedIn") === "true";
         if (isAdminLoggedIn) {
           dispatch(adminLogin({ role: "admin" }));
+        } else {
+          dispatch(adminLogout());
         }
       }
 
@@ -44,6 +95,7 @@ export default function App({ Component, pageProps }: AppProps) {
   return (
     <Provider store={store}>
       <AuthListener />
+      <RouteAccessGuard />
       <div className="bg-white">
         <ToastContainer/>
         <Navbar />

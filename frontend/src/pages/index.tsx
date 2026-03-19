@@ -138,6 +138,7 @@ export default function SvgSlider() {
   const filteredJobs = jobs.filter(
     (item: any) => !selectedCategory || item.category === selectedCategory
   );
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -360,7 +361,7 @@ export default function SvgSlider() {
                   Full Time Job
                 </span>
                 <Link
-                  href={`/detailInternship?q=${job._id}`}
+                  href={`/detailjob/${job._id}`}
                   className="text-indigo-600 hover:text-indigo-700 flex items-center gap-1 font-semibold group-hover:gap-2 transition-all"
                 >
                   View details

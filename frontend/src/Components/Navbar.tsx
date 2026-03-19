@@ -2,24 +2,166 @@ import React from "react";
 import logo from "../Assets/67_human_logo.jpg";
 import Link from "next/link";
 import { auth, provider } from "../firebase/firebase";
-import { ArrowLeft, Search } from "lucide-react";
+import { ArrowLeft, Bell, Search } from "lucide-react";
 import { signInWithPopup, signInWithRedirect, signOut } from "firebase/auth";
 import { toast } from "react-toastify";
 import { useDispatch, useSelector } from "react-redux";
 import { adminLogout, logout, selectIsAdmin, selectuser } from "@/Feature/Userslice";
 import { useRouter } from "next/router";
+import axios from "axios";
+import { API_BASE_URL } from "@/lib/apiBase";
+
 interface User {
   name: string;
   email: string;
   photo: string;
 }
+
+type NotificationItem = {
+  _id: string;
+  company?: string;
+  status: "accepted" | "rejected";
+  createdAt?: string;
+};
+
+const normalizeStatus = (status: string | undefined) => {
+  const normalized = String(status || "pending").toLowerCase();
+  return normalized === "approved" ? "accepted" : normalized;
+};
+
+const getSeenNotificationsStorageKey = (email: string) =>
+  `internsite_seen_notifications_${email.toLowerCase()}`;
+
 const Navbar = () => {
   const router = useRouter();
   const dispatch = useDispatch();
   const user = useSelector(selectuser);
   const isAdmin = useSelector(selectIsAdmin);
   const [isGoogleLoading, setIsGoogleLoading] = React.useState(false);
+  const [isNotificationOpen, setIsNotificationOpen] = React.useState(false);
+  const [notifications, setNotifications] = React.useState<NotificationItem[]>([]);
+  const [seenNotificationIds, setSeenNotificationIds] = React.useState<string[]>([]);
+  const notificationRef = React.useRef<HTMLDivElement | null>(null);
   const showBackButton = router.pathname !== "/";
+
+  React.useEffect(() => {
+    if (!user?.email || typeof window === "undefined") {
+      setSeenNotificationIds([]);
+      return;
+    }
+
+    try {
+      const rawSeenIds = localStorage.getItem(
+        getSeenNotificationsStorageKey(user.email)
+      );
+      const parsedSeenIds = rawSeenIds ? JSON.parse(rawSeenIds) : [];
+
+      if (Array.isArray(parsedSeenIds)) {
+        const validSeenIds = parsedSeenIds.filter(
+          (item) => typeof item === "string"
+        );
+        setSeenNotificationIds(validSeenIds);
+      } else {
+        setSeenNotificationIds([]);
+      }
+    } catch (error) {
+      console.error(error);
+      setSeenNotificationIds([]);
+    }
+  }, [user?.email]);
+
+  const markNotificationsAsSeen = React.useCallback(
+    (ids: string[]) => {
+      if (!user?.email || typeof window === "undefined" || ids.length === 0) {
+        return;
+      }
+
+      setSeenNotificationIds((previousIds) => {
+        const mergedIds = Array.from(new Set([...previousIds, ...ids]));
+        localStorage.setItem(
+          getSeenNotificationsStorageKey(user.email),
+          JSON.stringify(mergedIds)
+        );
+        return mergedIds;
+      });
+    },
+    [user?.email]
+  );
+
+  const unreadNotificationCount = React.useMemo(
+    () =>
+      notifications.filter(
+        (notification) => !seenNotificationIds.includes(notification._id)
+      ).length,
+    [notifications, seenNotificationIds]
+  );
+
+  React.useEffect(() => {
+    const fetchNotifications = async () => {
+      if (!user) {
+        setNotifications([]);
+        return;
+      }
+
+      try {
+        const response = await axios.get(`${API_BASE_URL}/api/application`);
+        const allApplications = Array.isArray(response.data) ? response.data : [];
+        const userEmail = String(user?.email || "").toLowerCase();
+        const userName = String(user?.name || "").toLowerCase();
+
+        const decisionUpdates = allApplications
+          .filter((application: any) => {
+            const email = String(application.user?.email || "").toLowerCase();
+            const name = String(application.user?.name || "").toLowerCase();
+
+            if (userEmail && email && userEmail !== email) {
+              return false;
+            }
+
+            if (!userEmail && userName && name !== userName) {
+              return false;
+            }
+
+            const status = normalizeStatus(application.status);
+            return status === "accepted" || status === "rejected";
+          })
+          .sort((a: any, b: any) => {
+            const first = new Date(a?.createdAt || 0).getTime();
+            const second = new Date(b?.createdAt || 0).getTime();
+            return second - first;
+          })
+          .slice(0, 5)
+          .map((application: any) => ({
+            _id: application._id,
+            company: application.company,
+            status: normalizeStatus(application.status) as "accepted" | "rejected",
+            createdAt: application.createdAt,
+          }));
+
+        setNotifications(decisionUpdates);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    fetchNotifications();
+  }, [user]);
+
+  React.useEffect(() => {
+    const handleOutsideClick = (event: MouseEvent) => {
+      if (
+        notificationRef.current &&
+        !notificationRef.current.contains(event.target as Node)
+      ) {
+        setIsNotificationOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+    };
+  }, []);
 
   const handleBack = () => {
     if (typeof window !== "undefined" && window.history.length > 1) {
@@ -65,24 +207,30 @@ const Navbar = () => {
     }
   };
   const handlelogout = async () => {
+    const wasAdmin = isAdmin;
+    const hadUserSession = Boolean(user);
+
     try {
-      if (isAdmin) {
+      if (wasAdmin) {
         if (typeof window !== "undefined") {
           localStorage.removeItem("isAdminLoggedIn");
         }
         dispatch(adminLogout());
       }
 
-      if (user) {
+      if (hadUserSession) {
         await signOut(auth);
         dispatch(logout());
-        toast.success("logged out successfully");
+      }
+
+      if (wasAdmin && !hadUserSession) {
+        toast.success("admin logged out successfully");
+        await router.replace("/adminlogin");
         return;
       }
 
-      if (isAdmin) {
-        toast.success("admin logged out successfully");
-      }
+      toast.success("logged out successfully");
+      await router.replace("/");
     } catch (error) {
       console.error(error);
       toast.error("logout failed");
@@ -142,6 +290,75 @@ const Navbar = () => {
             <div className="flex items-center space-x-3">
               {user ? (
                 <div className="flex items-center space-x-3">
+                  <div className="relative" ref={notificationRef}>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setIsNotificationOpen((prev) => {
+                          const next = !prev;
+
+                          if (next) {
+                            markNotificationsAsSeen(
+                              notifications.map((item) => item._id)
+                            );
+                          }
+
+                          return next;
+                        })
+                      }
+                      className="relative h-10 w-10 inline-flex items-center justify-center rounded-xl border border-gray-200 text-gray-600 hover:text-blue-600 hover:border-blue-400 hover:bg-blue-50 transition-all duration-200"
+                      aria-label="Notifications"
+                      title="Notifications"
+                    >
+                      <Bell size={18} />
+                      {unreadNotificationCount > 0 && (
+                        <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-semibold inline-flex items-center justify-center">
+                          {unreadNotificationCount}
+                        </span>
+                      )}
+                    </button>
+
+                    {isNotificationOpen && (
+                      <div className="absolute right-0 mt-2 w-80 bg-white border border-gray-200 rounded-xl shadow-xl p-3 z-50">
+                        <p className="text-sm font-semibold text-gray-900 mb-2">
+                          Notifications
+                        </p>
+
+                        {notifications.length === 0 ? (
+                          <p className="text-xs text-gray-500">
+                            No selected or not selected updates yet.
+                          </p>
+                        ) : (
+                          <div className="space-y-2">
+                            {notifications.map((item) => (
+                              <div
+                                key={item._id}
+                                className="rounded-lg border border-gray-100 bg-gray-50 p-2"
+                              >
+                                <p className="text-xs font-semibold text-gray-900">
+                                  {item.status === "accepted"
+                                    ? "Selected"
+                                    : "Not Selected"}
+                                </p>
+                                <p className="text-xs text-gray-600">
+                                  {item.company || "Company update"}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        <Link
+                          href="/userapplication"
+                          onClick={() => setIsNotificationOpen(false)}
+                          className="mt-3 inline-flex items-center justify-center w-full rounded-lg bg-blue-600 text-white text-xs font-medium px-3 py-2 hover:bg-blue-700 transition-colors"
+                        >
+                          View More
+                        </Link>
+                      </div>
+                    )}
+                  </div>
+
                   <Link href={"/profile"} className="flex items-center space-x-3 hover:opacity-80 transition-opacity">
                     <img
                       src={user.photo}
