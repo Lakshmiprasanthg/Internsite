@@ -12,6 +12,7 @@ import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { API_BASE_URL } from "@/lib/apiBase";
+import { useTranslation } from "react-i18next";
 // const Applications = [
 //   {
 //     _id: "1",
@@ -54,6 +55,7 @@ const getStatusColor = (status: any) => {
   }
 };
 const index = () => {
+  const { t, i18n } = useTranslation();
   const [searchTerm, setsearchTerm] = useState("");
   const [filter, setFilter] = useState("all");
   const [data, setdata] = useState<any>([]);
@@ -83,6 +85,24 @@ const index = () => {
     if (filter === "all") return searchmatch;
     return searchmatch && normalizeStatus(application.status) === filter;
   });
+
+  const formatDate = (dateValue: string | undefined) => {
+    if (!dateValue) {
+      return t("common.notAvailable", { defaultValue: "N/A" });
+    }
+
+    const parsed = new Date(dateValue);
+    if (Number.isNaN(parsed.getTime())) {
+      return t("common.notAvailable", { defaultValue: "N/A" });
+    }
+
+    return parsed.toLocaleDateString(i18n.language || "en", {
+      year: "numeric",
+      month: "short",
+      day: "2-digit",
+    });
+  };
+
   const handleacceptandreject = async (id: any, action: any) => {
     try {
       const res = await axios.put(
@@ -93,10 +113,10 @@ const index = () => {
         app._id === id ? res.data.data : app
       );
       setdata(updateappliacrtion);
-      toast.success("updated successfully");
+      toast.success(t("common.success"));
     } catch (error) {
       console.log(error);
-      toast.error("error updating");
+      toast.error(t("common.error"));
     }
   };
   return (
@@ -105,9 +125,9 @@ const index = () => {
         <div className="bg-white rounded-lg shadow-sm">
           {/* Header */}
           <div className="border-b border-gray-200 px-6 py-4">
-            <h1 className="text-2xl font-bold text-gray-900">Applications</h1>
+            <h1 className="text-2xl font-bold text-gray-900">{t("adminPanel.viewApplications")}</h1>
             <p className="mt-1 text-sm text-gray-500">
-              Manage and review all applications
+              {t("applications.filter")}
             </p>
           </div>
 
@@ -120,7 +140,7 @@ const index = () => {
                     type="text"
                     value={searchTerm}
                     onChange={(e) => setsearchTerm(e.target.value)}
-                    placeholder="Search by company, category, or applicant..."
+                    placeholder={t("common.search")}
                     className="text-black w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                   <Mail className="absolute top-3 left-3 text-gray-400" />
@@ -135,7 +155,7 @@ const index = () => {
                       : "bg-gray-100 text-gray-800"
                   }`}
                 >
-                  All
+                  {t("applications.filterAll")}
                 </button>
                 <button
                   onClick={() => setFilter("pending")}
@@ -145,7 +165,7 @@ const index = () => {
                       : "bg-gray-100 text-gray-800"
                   }`}
                 >
-                  Pending
+                  {t("applications.filterPending")}
                 </button>
                 <button
                   onClick={() => setFilter("accepted")}
@@ -155,7 +175,7 @@ const index = () => {
                       : "bg-gray-100 text-gray-800"
                   }`}
                 >
-                  Accepted
+                  {t("applications.filterSelected")}
                 </button>
                 <button
                   onClick={() => setFilter("rejected")}
@@ -165,7 +185,7 @@ const index = () => {
                       : "bg-gray-100 text-gray-800"
                   }`}
                 >
-                  Rejected
+                  {t("applications.filterRejected")}
                 </button>
               </div>
             </div>
@@ -179,31 +199,31 @@ const index = () => {
                     scope="col"
                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                   >
-                    Company & Category
+                    {t("applications.company")} & {t("applications.category")}
                   </th>
                   <th
                     scope="col"
                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                   >
-                    Applicant
+                    {t("applications.position", { defaultValue: "Applicant" })}
                   </th>
                   <th
                     scope="col"
                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                   >
-                    Applied Date
+                    {t("applications.appliedDate")}
                   </th>
                   <th
                     scope="col"
                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                   >
-                    Status
+                    {t("applications.status")}
                   </th>
                   <th
                     scope="col"
                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                   >
-                    Actions
+                    {t("analytics.actions", { defaultValue: "Actions" })}
                   </th>
                 </tr>
               </thead>
@@ -244,11 +264,7 @@ const index = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center text-sm text-gray-500">
                         <Calendar className="h-4 w-4 mr-1" />
-                        {
-                          new Date(application.createdAt)
-                            .toISOString()
-                            .split("T")[0]
-                        }
+                        {formatDate(application.createdAt)}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -257,7 +273,11 @@ const index = () => {
                           application.status
                         )}`}
                       >
-                        {normalizeStatus(application.status)}
+                        {normalizeStatus(application.status) === "accepted"
+                          ? t("applications.selected")
+                          : normalizeStatus(application.status) === "rejected"
+                          ? t("applications.notSelected")
+                          : t("applications.filterPending")}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -266,7 +286,7 @@ const index = () => {
                           href={`/detailapplication/${application._id}`}
                           className="text-blue-600 hover:text-blue-900"
                         >
-                          View Details
+                          {t("home.viewDetails")}
                         </Link>
                         <button
                           onClick={() => {

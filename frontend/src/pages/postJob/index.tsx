@@ -14,7 +14,9 @@ import { toast } from "react-toastify";
 import axios from "axios";
 import { useRouter } from "next/router";
 import { API_BASE_URL } from "@/lib/apiBase";
+import { useTranslation } from "react-i18next";
 const index = () => {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     title: "",
     company: "",
@@ -43,17 +45,17 @@ const index = () => {
     e.preventDefault();
     const hasemptyfields = Object.values(formData).some((val) => !val.trim());
     if (hasemptyfields) {
-      toast.error("Please fill in all detials");
+      toast.error(t("validation.required"));
       return;
     }
     try {
       setisloading(true);
       await axios.post(`${API_BASE_URL}/api/job`, formData);
-      toast.success("job posted successfuly");
+      toast.success(t("common.success"));
       router.push("/adminpanel");
     } catch (error) {
       console.log(error);
-      toast.error("error posting job");
+      toast.error(t("common.error"));
     } finally {
       setisloading(false);
     }
@@ -63,9 +65,9 @@ const index = () => {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-white rounded-lg shadow-sm p-6">
           <div className="mb-8">
-            <h1 className="text-2xl font-bold text-gray-900">Post New Job</h1>
+            <h1 className="text-2xl font-bold text-gray-900">{t("adminPanel.postJob")}</h1>
             <p className="mt-2 text-sm text-gray-600">
-              Create a new job opportunity
+              {t("home.jobs")}
             </p>
           </div>
 
@@ -77,7 +79,7 @@ const index = () => {
                   <label className="block text-sm font-medium text-gray-700">
                     <div className="flex items-center mb-1">
                       <Briefcase className="h-4 w-4 mr-1" />
-                      Title*
+                      {t("detail.title", { defaultValue: "Title" })}*
                     </div>
                   </label>
                   <input
@@ -86,7 +88,7 @@ const index = () => {
                     value={formData.title}
                     onChange={handleChange}
                     className="text-black  mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                    placeholder="e.g. Frontend Developer Intern"
+                    placeholder={t("detail.title", { defaultValue: "Title" })}
                   />
                 </div>
 
@@ -94,7 +96,7 @@ const index = () => {
                   <label className="block text-sm font-medium text-gray-700">
                     <div className="flex items-center mb-1">
                       <Building2 className="h-4 w-4 mr-1" />
-                      Company Name*
+                      {t("applications.company")}*
                     </div>
                   </label>
                   <input
@@ -103,7 +105,7 @@ const index = () => {
                     value={formData.company}
                     onChange={handleChange}
                     className="text-black mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                    placeholder="e.g. Tech Solutions Inc"
+                    placeholder={t("applications.company")}
                   />
                 </div>
               </div>
@@ -113,7 +115,7 @@ const index = () => {
                   <label className="block text-sm font-medium text-gray-700">
                     <div className="flex items-center mb-1">
                       <MapPin className="h-4 w-4 mr-1" />
-                      Location*
+                      {t("detail.location", { defaultValue: "Location" })}*
                     </div>
                   </label>
                   <input
@@ -122,7 +124,7 @@ const index = () => {
                     value={formData.location}
                     onChange={handleChange}
                     className="text-black mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                    placeholder="e.g. Mumbai, India"
+                    placeholder={t("detail.location", { defaultValue: "Location" })}
                   />
                 </div>
 
@@ -130,7 +132,7 @@ const index = () => {
                   <label className="block text-sm font-medium text-gray-700">
                     <div className="flex items-center mb-1">
                       <Tags className="h-4 w-4 mr-1" />
-                      Category*
+                      {t("applications.category")}*
                     </div>
                   </label>
                   <input
@@ -139,7 +141,7 @@ const index = () => {
                     value={formData.category}
                     onChange={handleChange}
                     className=" text-black mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                    placeholder="e.g. Software Development"
+                    placeholder={t("applications.category")}
                   />
                 </div>
               </div>
@@ -151,7 +153,7 @@ const index = () => {
                 <label className="block text-sm font-medium text-gray-700">
                   <div className="flex items-center mb-1">
                     <Info className="h-4 w-4 mr-1" />
-                    About Company*
+                    {t("detail.aboutCompany", { defaultValue: "About Company" })}*
                   </div>
                 </label>
                 <textarea
@@ -160,7 +162,7 @@ const index = () => {
                   onChange={handleChange}
                   rows={4}
                   className="text-black mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                  placeholder="Describe your company..."
+                  placeholder={t("detail.aboutCompany", { defaultValue: "About Company" })}
                 />
               </div>
 
@@ -168,7 +170,7 @@ const index = () => {
                 <label className="block text-sm font-medium text-gray-700">
                   <div className="flex items-center mb-1">
                     <Briefcase className="h-4 w-4 mr-1" />
-                    About Job*
+                    {t("detail.aboutJob", { defaultValue: "About Job" })}*
                   </div>
                 </label>
                 <textarea
@@ -177,7 +179,7 @@ const index = () => {
                   onChange={handleChange}
                   rows={4}
                   className="text-black mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                  placeholder="Describe the internship role..."
+                  placeholder={t("detail.aboutJob", { defaultValue: "About Job" })}
                 />
               </div>
             </div>
@@ -188,7 +190,7 @@ const index = () => {
                 <label className="block text-sm font-medium text-gray-700">
                   <div className="flex items-center mb-1">
                     <Users className="h-4 w-4 mr-1" />
-                    Who Can Apply*
+                    {t("detail.whoCanApply", { defaultValue: "Who can apply" })}*
                   </div>
                 </label>
                 <textarea
@@ -197,7 +199,7 @@ const index = () => {
                   onChange={handleChange}
                   rows={3}
                   className="text-black mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                  placeholder="Eligibility criteria..."
+                  placeholder={t("detail.whoCanApply", { defaultValue: "Who can apply" })}
                 />
               </div>
 
@@ -205,7 +207,7 @@ const index = () => {
                 <label className="block text-sm font-medium text-gray-700">
                   <div className="flex items-center mb-1">
                     <Info className="h-4 w-4 mr-1" />
-                    Perks*
+                    {t("detail.perks", { defaultValue: "Perks" })}*
                   </div>
                 </label>
                 <textarea
@@ -214,7 +216,7 @@ const index = () => {
                   onChange={handleChange}
                   rows={3}
                   className="text-black mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                  placeholder="List the perks..."
+                  placeholder={t("detail.perks", { defaultValue: "Perks" })}
                 />
               </div>
             </div>
@@ -225,7 +227,7 @@ const index = () => {
                 <label className="block text-sm font-medium text-gray-700">
                   <div className="flex items-center mb-1">
                     <Users className="h-4 w-4 mr-1" />
-                    Number of Openings*
+                    {t("detail.numberOfOpenings", { defaultValue: "Number of Openings" })}*
                   </div>
                 </label>
                 <input
@@ -235,7 +237,7 @@ const index = () => {
                   onChange={handleChange}
                   min="1"
                   className="text-black mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                  placeholder="e.g. 5"
+                  placeholder={t("detail.numberOfOpenings", { defaultValue: "Number of Openings" })}
                 />
               </div>
 
@@ -260,7 +262,7 @@ const index = () => {
                 <label className="block text-sm font-medium text-gray-700">
                   <div className="flex items-center mb-1">
                     <Calendar className="h-4 w-4 mr-1" />
-                    Start Date*
+                    {t("detail.startDate", { defaultValue: "Start Date" })}*
                   </div>
                 </label>
                 <input
@@ -276,7 +278,7 @@ const index = () => {
                 <label className="block text-sm font-medium text-gray-700">
                   <div className="flex items-center mb-1">
                     <Info className="h-4 w-4 mr-1" />
-                    Additional Information*
+                    {t("detail.additionalInformation", { defaultValue: "Additional Information" })}*
                   </div>
                 </label>
                 <textarea
@@ -285,7 +287,7 @@ const index = () => {
                   onChange={handleChange}
                   rows={3}
                   className="text-black mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                  placeholder="Any additional details..."
+                  placeholder={t("detail.additionalInformation", { defaultValue: "Additional Information" })}
                 />
               </div>
             </div>
@@ -299,10 +301,10 @@ const index = () => {
                 {isloading ? (
                   <div className="flex items-center">
                     <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white mr-2"></div>
-                    Posting job...
+                    {t("detail.postingJob", { defaultValue: "Posting job..." })}
                   </div>
                 ) : (
-                  "Post Job"
+                  t("adminPanel.postJob")
                 )}
               </button>
             </div>

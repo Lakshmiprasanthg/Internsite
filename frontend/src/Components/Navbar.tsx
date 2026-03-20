@@ -11,6 +11,7 @@ import { useRouter } from "next/router";
 import axios from "axios";
 import { API_BASE_URL } from "@/lib/apiBase";
 import LanguageSelector from "./LanguageSelector";
+import { useTranslation } from "react-i18next";
 
 interface User {
   name: string;
@@ -34,6 +35,7 @@ const getSeenNotificationsStorageKey = (email: string) =>
   `internsite_seen_notifications_${email.toLowerCase()}`;
 
 const Navbar = () => {
+  const { t } = useTranslation();
   const router = useRouter();
   const dispatch = useDispatch();
   const user = useSelector(selectuser);
@@ -249,8 +251,8 @@ const Navbar = () => {
                   type="button"
                   onClick={handleBack}
                   className="h-10 w-10 inline-flex items-center justify-center rounded-xl border border-gray-200 text-gray-600 hover:text-blue-600 hover:border-blue-400 hover:bg-blue-50 transition-all duration-200"
-                  aria-label="Go back"
-                  title="Go back"
+                  aria-label={t("common.back")}
+                  title={t("common.back")}
                 >
                   <ArrowLeft size={18} />
                 </button>
@@ -270,18 +272,18 @@ const Navbar = () => {
             {/* Navigation Links */}
             <div className="hidden md:flex items-center space-x-6">
               <Link href={"/internship"} className="relative text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200 group">
-                <span>Internships</span>
+                <span>{t("navbar.internships")}</span>
                 <span className="absolute left-0 bottom-0 w-0 h-0.5 bg-blue-600 transition-all duration-200 group-hover:w-full"></span>
               </Link>
               <Link href={"/job"} className="relative text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200 group">
-                <span>Jobs</span>
+                <span>{t("navbar.jobs")}</span>
                 <span className="absolute left-0 bottom-0 w-0 h-0.5 bg-blue-600 transition-all duration-200 group-hover:w-full"></span>
               </Link>
               <div className="flex items-center bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 hover:border-blue-300 transition-colors duration-200 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100">
                 <Search size={18} className="text-gray-400" />
                 <input
                   type="text"
-                  placeholder="Search opportunities..."
+                  placeholder={t("common.search")}
                   className="ml-2 bg-transparent focus:outline-none text-sm w-52 text-gray-700 placeholder-gray-400"
                 />
               </div>
@@ -309,8 +311,8 @@ const Navbar = () => {
                         })
                       }
                       className="relative h-10 w-10 inline-flex items-center justify-center rounded-xl border border-gray-200 text-gray-600 hover:text-blue-600 hover:border-blue-400 hover:bg-blue-50 transition-all duration-200"
-                      aria-label="Notifications"
-                      title="Notifications"
+                      aria-label={t("navbar.notifications", { defaultValue: "Notifications" })}
+                      title={t("navbar.notifications", { defaultValue: "Notifications" })}
                     >
                       <Bell size={18} />
                       {unreadNotificationCount > 0 && (
@@ -323,12 +325,14 @@ const Navbar = () => {
                     {isNotificationOpen && (
                       <div className="absolute right-0 mt-2 w-80 bg-white border border-gray-200 rounded-xl shadow-xl p-3 z-50">
                         <p className="text-sm font-semibold text-gray-900 mb-2">
-                          Notifications
+                          {t("navbar.notifications", { defaultValue: "Notifications" })}
                         </p>
 
                         {notifications.length === 0 ? (
                           <p className="text-xs text-gray-500">
-                            No selected or not selected updates yet.
+                            {t("navbar.noUpdates", {
+                              defaultValue: "No selected or not selected updates yet.",
+                            })}
                           </p>
                         ) : (
                           <div className="space-y-2">
@@ -339,11 +343,14 @@ const Navbar = () => {
                               >
                                 <p className="text-xs font-semibold text-gray-900">
                                   {item.status === "accepted"
-                                    ? "Selected"
-                                    : "Not Selected"}
+                                    ? t("applications.selected")
+                                    : t("applications.notSelected")}
                                 </p>
                                 <p className="text-xs text-gray-600">
-                                  {item.company || "Company update"}
+                                  {item.company ||
+                                    t("applications.message", {
+                                      defaultValue: "Company update",
+                                    })}
                                 </p>
                               </div>
                             ))}
@@ -355,7 +362,7 @@ const Navbar = () => {
                           onClick={() => setIsNotificationOpen(false)}
                           className="mt-3 inline-flex items-center justify-center w-full rounded-lg bg-blue-600 text-white text-xs font-medium px-3 py-2 hover:bg-blue-700 transition-colors"
                         >
-                          View More
+                          {t("applications.viewMore")}
                         </Link>
                       </div>
                     )}
@@ -372,7 +379,7 @@ const Navbar = () => {
                     className="px-5 py-2.5 text-gray-700 hover:text-red-600 hover:bg-red-50 rounded-xl font-medium transition-all duration-200"
                     onClick={handlelogout}
                   >
-                    Logout
+                    {t("navbar.logout")}
                   </button>
                 </div>
               ) : isAdmin ? (
@@ -382,13 +389,13 @@ const Navbar = () => {
                     href="/adminpanel"
                     className="px-5 py-2.5 text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 rounded-xl font-medium transition-all duration-200"
                   >
-                    Admin Panel
+                    {t("adminPanel.title")}
                   </Link>
                   <button
                     className="px-5 py-2.5 text-gray-700 hover:text-red-600 hover:bg-red-50 rounded-xl font-medium transition-all duration-200"
                     onClick={handlelogout}
                   >
-                    Logout
+                    {t("navbar.logout")}
                   </button>
                 </div>
               ) : (
@@ -418,14 +425,16 @@ const Navbar = () => {
                       />
                     </svg>
                     <span className="font-medium text-gray-700 group-hover:text-blue-600">
-                      {isGoogleLoading ? "Signing in..." : "Sign in with Google"}
+                      {isGoogleLoading
+                        ? t("auth.loggingIn")
+                        : t("auth.loginWithGoogle")}
                     </span>
                   </button>
                   <Link
                     href="/adminlogin"
                     className="px-5 py-2.5 text-gray-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl font-medium transition-all duration-200"
                   >
-                    Login as Admin
+                    {t("auth.adminLogin")}
                   </Link>
                 </>
               )}

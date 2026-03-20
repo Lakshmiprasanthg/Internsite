@@ -15,6 +15,7 @@ import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import { API_BASE_URL } from "@/lib/apiBase";
+import { useTranslation } from "react-i18next";
 // export const internships = [
 //   {
 //     _id: "1",
@@ -73,6 +74,7 @@ import { API_BASE_URL } from "@/lib/apiBase";
 // ];
 
 const index = () => {
+  const { t } = useTranslation();
   const router = useRouter();
   const { id } = router.query;
   const [internshipData,setinternship]=useState<any>([])
@@ -90,6 +92,32 @@ const index = () => {
   const [availability, setAvailability] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [coverLetter, setCoverLetter] = useState("");
+  const availabilityOptions = [
+    {
+      value: "immediately",
+      label: t("detail.availabilityImmediate", {
+        defaultValue: "Yes, I am available to join immediately",
+      }),
+    },
+    {
+      value: "notice_current",
+      label: t("detail.availabilityCurrentNotice", {
+        defaultValue: "No, I am currently on notice period",
+      }),
+    },
+    {
+      value: "notice_required",
+      label: t("detail.availabilityNeedNotice", {
+        defaultValue: "No, I will have to serve notice period",
+      }),
+    },
+    {
+      value: "other",
+      label: t("detail.availabilityOther", {
+        defaultValue: "Other",
+      }),
+    },
+  ];
   const user=useSelector(selectuser)
   if (!internshipData) {
     return (
@@ -100,11 +128,11 @@ const index = () => {
   }
   const handlesubmitapplication=async()=>{
     if(!coverLetter.trim()){
-      toast.error("please write a cover letter")
+      toast.error(t("detail.coverLetterRequired", { defaultValue: "Please write a cover letter" }))
       return
     }
     if(!availability){
-      toast.error("please select your availability")
+      toast.error(t("detail.availabilityRequired", { defaultValue: "Please select your availability" }))
       return
     }
     try {
@@ -117,11 +145,11 @@ const index = () => {
         availability
       }
       await axios.post(`${API_BASE_URL}/api/application`,applicationdata)
-      toast.success("Application submit successfully")
+      toast.success(t("detail.applicationSubmitted", { defaultValue: "Application submitted successfully" }))
       router.push('/internship')
     } catch (error) {
       console.error(error)
-      toast.error("Failed to submit application")
+      toast.error(t("detail.applicationSubmitFailed", { defaultValue: "Failed to submit application" }))
     }
   }
   return (
@@ -131,7 +159,7 @@ const index = () => {
         <div className="p-6 border-b">
           <div className="flex items-center space-x-2 text-blue-600 mb-4">
             <ArrowUpRight className="h-5 w-5" />
-            <span className="font-medium">Actively Hiring</span>
+            <span className="font-medium">{t("detail.activelyHiring", { defaultValue: "Actively Hiring" })}</span>
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
             {internshipData.title}
@@ -154,21 +182,21 @@ const index = () => {
           <div className="mt-4 flex items-center space-x-2">
             <Clock className="h-4 w-4 text-green-500" />
             <span className="text-green-500 text-sm">
-              Posted on {internshipData.createdAt}
+              {t("detail.postedOn", { defaultValue: "Posted on" })} {internshipData.createdAt}
             </span>
           </div>
         </div>
         {/* Company Section */}
         <div className="p-6 border-b">
           <h2 className="text-xl font-bold text-gray-900 mb-4">
-            About {internshipData.company}
+            {t("detail.aboutCompany", { defaultValue: "About" })} {internshipData.company}
           </h2>
           <div className="flex items-center space-x-2 mb-4">
             <a
               href="#"
               className="text-blue-600 hover:text-blue-700 flex items-center space-x-1"
             >
-              <span>Visit company website</span>
+              <span>{t("detail.visitCompanyWebsite", { defaultValue: "Visit company website" })}</span>
               <ExternalLink className="h-4 w-4" />
             </a>
           </div>
@@ -177,25 +205,25 @@ const index = () => {
         {/* Internship Details Section */}
         <div className="p-6 border-b">
           <h2 className="text-xl font-bold text-gray-900 mb-4">
-            About the Internship
+            {t("detail.aboutInternship", { defaultValue: "About the Internship" })}
           </h2>
           <p className="text-gray-600 mb-6">{internshipData.aboutInternship}</p>
 
           <h3 className="text-lg font-semibold text-gray-900 mb-2">
-            Who can apply
+            {t("detail.whoCanApply", { defaultValue: "Who can apply" })}
           </h3>
           <p className="text-gray-600 mb-6">{internshipData.whoCanApply}</p>
 
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Perks</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">{t("detail.perks", { defaultValue: "Perks" })}</h3>
           <p className="text-gray-600 mb-6">{internshipData.perks}</p>
 
           <h3 className="text-lg font-semibold text-gray-900 mb-2">
-            Additional Information
+            {t("detail.additionalInformation", { defaultValue: "Additional Information" })}
           </h3>
           <p className="text-gray-600 mb-6">{internshipData.additionalInfo}</p>
 
           <h3 className="text-lg font-semibold text-gray-900 mb-2">
-            Number of Openings
+            {t("detail.numberOfOpenings", { defaultValue: "Number of Openings" })}
           </h3>
           <p className="text-gray-600">{internshipData.numberOfOpening}</p>
         </div>
@@ -205,7 +233,7 @@ const index = () => {
             onClick={() => setIsModalOpen(true)}
             className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition duration-150"
           >
-            Apply Now
+            {t("home.apply")}
           </button>
         </div>
       </div>
@@ -217,7 +245,7 @@ const index = () => {
             <div className="p-6 border-b">
               <div className="flex justify-between items-center">
                 <h2 className="text-2xl font-bold text-gray-900">
-                  Apply to {internshipData.company}
+                  {t("home.apply")} {t("detail.toCompany", { defaultValue: "to" })} {internshipData.company}
                 </h2>
                 <button
                   onClick={() => setIsModalOpen(false)}
@@ -231,48 +259,43 @@ const index = () => {
               {/* Resume Section */}
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  Your Resume
+                  {t("detail.yourResume", { defaultValue: "Your Resume" })}
                 </h3>
                 <p className="text-gray-600">
-                  Your current resume will be submitted with the application
+                  {t("detail.resumeSubmitted", { defaultValue: "Your current resume will be submitted with the application" })}
                 </p>
               </div>
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  Cover Letter
+                  {t("detail.coverLetter", { defaultValue: "Cover Letter" })}
                 </h3>
                 <p className="text-gray-600 mb-2">
-                  Why should you be selected for this internship?
+                  {t("detail.coverPrompt", { defaultValue: "Why should you be selected for this internship?" })}
                 </p>
                 <textarea
                   value={coverLetter}
                   onChange={(e) => setCoverLetter(e.target.value)}
                   className="w-full h-32 p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 text-black"
-                  placeholder="Write your cover letter here..."
+                  placeholder={t("detail.coverPlaceholder", { defaultValue: "Write your cover letter here..." })}
                 ></textarea>
               </div>
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  Your Availability
+                  {t("detail.availability", { defaultValue: "Your Availability" })}
                 </h3>
                 <div className="space-y-3">
-                  {[
-                    "Yes, I am available to join immediately",
-                    "No, I am currently on notice period",
-                    "No, I will have to serve notice period",
-                    "Other",
-                  ].map((option) => (
-                    <label key={option} className="flex items-center space-x-2">
+                  {availabilityOptions.map((option) => (
+                    <label key={option.value} className="flex items-center space-x-2">
                       <input
                         type="radio"
                         name=""
                         id=""
-                        value={option}
-                        checked={availability === option}
+                        value={option.value}
+                        checked={availability === option.value}
                         onChange={(e) => setAvailability(e.target.value)}
                         className="h-4 w-4 text-blue-600"
                       />
-                      <span className="text-gray-700">{option}</span>
+                      <span className="text-gray-700">{option.label}</span>
                     </label>
                   ))}
                 </div>
@@ -280,14 +303,14 @@ const index = () => {
               <div className="flex justify-end pt-4">
                 {user ? (
                   <button className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700" onClick={handlesubmitapplication}>
-                    Submit Application
+                    {t("detail.submitApplication", { defaultValue: "Submit Application" })}
                   </button>
                 ) : (
                   <Link
                     href={`/`}
                     className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
                   >
-                    Sign up to apply
+                    {t("detail.signUpToApply", { defaultValue: "Sign up to apply" })}
                   </Link>
                 )}
               </div>

@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { API_BASE_URL } from "@/lib/apiBase";
 import { BarChart3, Briefcase, ClipboardCheck, GraduationCap, Users } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 type Application = {
   status?: "accepted" | "pending" | "rejected";
@@ -17,6 +18,7 @@ type Job = {
 };
 
 const AnalyticsPage = () => {
+  const { t } = useTranslation();
   const [applications, setApplications] = useState<Application[]>([]);
   const [internships, setInternships] = useState<Internship[]>([]);
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -55,14 +57,14 @@ const AnalyticsPage = () => {
     const categoryMap = new Map<string, number>();
 
     [...internships, ...jobs].forEach((item) => {
-      const key = (item.category || "Uncategorized").trim();
+      const key = (item.category || t("analytics.uncategorized", { defaultValue: "Uncategorized" })).trim();
       categoryMap.set(key, (categoryMap.get(key) || 0) + 1);
     });
 
     return Array.from(categoryMap.entries())
       .sort((a, b) => b[1] - a[1])
       .slice(0, 6);
-  }, [internships, jobs]);
+  }, [internships, jobs, t]);
 
   const maxCategoryCount = topCategories[0]?.[1] || 1;
 
@@ -70,48 +72,50 @@ const AnalyticsPage = () => {
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Analytics</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t("adminPanel.analytics")}</h1>
           <p className="text-sm text-gray-500 mt-1">
-            Real-time overview of applications, jobs, and internships.
+            {t("analytics.overview", {
+              defaultValue: "Real-time overview of applications, jobs, and internships.",
+            })}
           </p>
         </div>
 
         {loading ? (
           <div className="bg-white rounded-2xl p-6 border border-gray-100 text-gray-500">
-            Loading analytics...
+            {t("common.loading")}
           </div>
         ) : (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-                <p className="text-sm text-gray-500">Applications</p>
+                <p className="text-sm text-gray-500">{t("adminPanel.totalApplications")}</p>
                 <p className="text-3xl font-bold text-gray-900 mt-2">{applications.length}</p>
                 <div className="mt-3 inline-flex items-center gap-1 text-blue-600 text-xs font-medium">
-                  <ClipboardCheck size={14} /> Total submissions
+                  <ClipboardCheck size={14} /> {t("analytics.totalSubmissions", { defaultValue: "Total submissions" })}
                 </div>
               </div>
 
               <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-                <p className="text-sm text-gray-500">Active Jobs</p>
+                <p className="text-sm text-gray-500">{t("adminPanel.activeJobs")}</p>
                 <p className="text-3xl font-bold text-gray-900 mt-2">{jobs.length}</p>
                 <div className="mt-3 inline-flex items-center gap-1 text-green-600 text-xs font-medium">
-                  <Briefcase size={14} /> Live opportunities
+                  <Briefcase size={14} /> {t("analytics.liveOpportunities", { defaultValue: "Live opportunities" })}
                 </div>
               </div>
 
               <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-                <p className="text-sm text-gray-500">Active Internships</p>
+                <p className="text-sm text-gray-500">{t("adminPanel.activeInternships")}</p>
                 <p className="text-3xl font-bold text-gray-900 mt-2">{internships.length}</p>
                 <div className="mt-3 inline-flex items-center gap-1 text-purple-600 text-xs font-medium">
-                  <GraduationCap size={14} /> Student-focused roles
+                  <GraduationCap size={14} /> {t("analytics.studentRoles", { defaultValue: "Student-focused roles" })}
                 </div>
               </div>
 
               <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-                <p className="text-sm text-gray-500">Acceptance Rate</p>
+                <p className="text-sm text-gray-500">{t("analytics.acceptanceRate", { defaultValue: "Acceptance Rate" })}</p>
                 <p className="text-3xl font-bold text-gray-900 mt-2">{acceptanceRate}%</p>
                 <div className="mt-3 inline-flex items-center gap-1 text-amber-600 text-xs font-medium">
-                  <Users size={14} /> Accepted applicants
+                  <Users size={14} /> {t("analytics.acceptedApplicants", { defaultValue: "Accepted applicants" })}
                 </div>
               </div>
             </div>
@@ -120,11 +124,11 @@ const AnalyticsPage = () => {
               <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
                 <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
                   <BarChart3 size={18} className="text-blue-600" />
-                  Application Status
+                  {t("analytics.applicationStatus", { defaultValue: "Application Status" })}
                 </h2>
                 <div className="space-y-3">
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600">Accepted</span>
+                    <span className="text-gray-600">{t("applications.selected")}</span>
                     <span className="font-semibold text-green-700">{accepted}</span>
                   </div>
                   <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
@@ -135,7 +139,7 @@ const AnalyticsPage = () => {
                   </div>
 
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600">Pending</span>
+                    <span className="text-gray-600">{t("applications.filterPending")}</span>
                     <span className="font-semibold text-amber-700">{pending}</span>
                   </div>
                   <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
@@ -146,7 +150,7 @@ const AnalyticsPage = () => {
                   </div>
 
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600">Rejected</span>
+                    <span className="text-gray-600">{t("applications.notSelected")}</span>
                     <span className="font-semibold text-red-700">{rejected}</span>
                   </div>
                   <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
@@ -159,10 +163,10 @@ const AnalyticsPage = () => {
               </div>
 
               <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">Top Categories</h2>
+                <h2 className="text-lg font-semibold text-gray-900 mb-4">{t("analytics.topCategories", { defaultValue: "Top Categories" })}</h2>
                 <div className="space-y-3">
                   {topCategories.length === 0 ? (
-                    <p className="text-sm text-gray-500">No category data yet.</p>
+                    <p className="text-sm text-gray-500">{t("analytics.noCategoryData", { defaultValue: "No category data yet." })}</p>
                   ) : (
                     topCategories.map(([name, count]) => (
                       <div key={name}>

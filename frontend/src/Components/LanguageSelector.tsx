@@ -5,6 +5,7 @@ import { selectuser } from "@/Feature/Userslice";
 import axios from "axios";
 import { API_BASE_URL } from "@/lib/apiBase";
 import { Globe, X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const languages = [
   { code: "en", name: "English" },
@@ -16,6 +17,7 @@ const languages = [
 ];
 
 const LanguageSelector = () => {
+  const { t } = useTranslation();
   const dispatch = useDispatch();
   const currentLanguage = useSelector(selectLanguage);
   const user = useSelector(selectuser);
@@ -38,7 +40,11 @@ const LanguageSelector = () => {
     }
 
     if (!user?.email) {
-      alert("Please login first to change language");
+      alert(
+        t("modal.loginRequired", {
+          defaultValue: "Please login first to change language",
+        })
+      );
       setIsOpen(false);
       return;
     }
@@ -58,7 +64,7 @@ const LanguageSelector = () => {
     setError("");
 
     try {
-      const response = await axios.post(`${API_BASE_URL}/otp/send`, {
+      const response = await axios.post(`${API_BASE_URL}/api/otp/send`, {
         email: user.email,
       });
 
@@ -68,7 +74,10 @@ const LanguageSelector = () => {
       }
     } catch (err: any) {
       setError(
-        err.response?.data?.error || "Failed to send OTP. Please try again."
+        err.response?.data?.error ||
+          t("modal.sendOtpFailed", {
+            defaultValue: "Failed to send OTP. Please try again.",
+          })
       );
     } finally {
       setIsLoading(false);
@@ -77,7 +86,11 @@ const LanguageSelector = () => {
 
   const verifyOtp = async () => {
     if (!user?.email || !selectedLanguage || !otp) {
-      setError("Please fill in all fields");
+      setError(
+        t("validation.required", {
+          defaultValue: "Please fill in all fields",
+        })
+      );
       return;
     }
 
@@ -85,7 +98,7 @@ const LanguageSelector = () => {
     setError("");
 
     try {
-      const response = await axios.post(`${API_BASE_URL}/otp/verify`, {
+      const response = await axios.post(`${API_BASE_URL}/api/otp/verify`, {
         email: user.email,
         otp,
       });
@@ -98,7 +111,10 @@ const LanguageSelector = () => {
       }
     } catch (err: any) {
       setError(
-        err.response?.data?.error || "Failed to verify OTP. Please try again."
+        err.response?.data?.error ||
+          t("modal.invalidOtp", {
+            defaultValue: "Invalid or expired verification code",
+          })
       );
     } finally {
       setIsLoading(false);
@@ -119,8 +135,8 @@ const LanguageSelector = () => {
         {/* Language Selector Button */}
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-gray-100 transition"
-          title="Change language"
+          className="flex items-center gap-2 px-3 py-2 rounded-md bg-slate-900 text-white border border-slate-700 hover:bg-slate-800 transition"
+          title={t("navbar.language")}
         >
           <Globe size={18} />
           <span className="text-sm">{currentLangName}</span>
@@ -128,7 +144,7 @@ const LanguageSelector = () => {
 
         {/* Dropdown Menu */}
         {isOpen && (
-          <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+          <div className="absolute right-0 mt-2 w-48 bg-slate-900 border border-slate-700 rounded-lg shadow-lg z-50">
             <div className="p-2">
               {languages.map((lang) => (
                 <button
@@ -136,8 +152,8 @@ const LanguageSelector = () => {
                   onClick={() => handleLanguageSelect(lang.code)}
                   className={`w-full text-left px-4 py-2 rounded-md transition ${
                     lang.code === currentLanguage
-                      ? "bg-blue-100 text-blue-700 font-semibold"
-                      : "hover:bg-gray-100"
+                      ? "bg-blue-600 text-white font-semibold"
+                      : "text-slate-100 hover:bg-slate-800"
                   }`}
                 >
                   {lang.name}
@@ -155,8 +171,8 @@ const LanguageSelector = () => {
             {/* Modal Header */}
             <div className="flex items-center justify-between p-6 border-b">
               <h2 className="text-xl font-bold">
-                Verify Email for{" "}
-                {languages.find((l) => l.code === selectedLanguage)?.name}
+                {t("modal.confirmLanguageChange")} -{" "}
+                {languages.find((l) => l.code === selectedLanguage)?.name || ""}
               </h2>
               <button
                 onClick={() => {
@@ -174,21 +190,25 @@ const LanguageSelector = () => {
             {/* Modal Body */}
             <div className="p-6 space-y-4">
               <p className="text-gray-600 text-sm">
-                A verification code has been sent to:
+                {t("modal.changeLanguageDescription")}
               </p>
               <p className="font-semibold text-gray-800">{user?.email}</p>
 
               {!otpSent && (
                 <>
                   <p className="text-gray-700 text-sm">
-                    Click the button below to receive a verification code.
+                    {t("modal.otpSent")}
                   </p>
                   <button
                     onClick={sendOtp}
                     disabled={isLoading}
                     className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 transition"
                   >
-                    {isLoading ? "Sending..." : "Send Verification Code"}
+                    {isLoading
+                      ? t("modal.resending")
+                      : t("modal.sendCode", {
+                          defaultValue: "Send Verification Code",
+                        })}
                   </button>
                 </>
               )}
@@ -197,7 +217,7 @@ const LanguageSelector = () => {
                 <>
                   <div className="space-y-3">
                     <label className="block text-sm font-semibold text-gray-700">
-                      Enter Verification Code
+                      {t("modal.enterOtp")}
                     </label>
                     <input
                       type="text"
@@ -208,7 +228,7 @@ const LanguageSelector = () => {
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 text-center text-lg tracking-widest"
                     />
                     <p className="text-xs text-gray-500">
-                      Code expires in 10 minutes
+                      {t("modal.otpExpires")}
                     </p>
                   </div>
 
@@ -223,7 +243,9 @@ const LanguageSelector = () => {
                     disabled={isLoading || otp.length !== 6}
                     className="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 disabled:bg-gray-400 transition"
                   >
-                    {isLoading ? "Verifying..." : "Verify and Change Language"}
+                    {isLoading
+                      ? t("modal.verifying")
+                      : t("modal.confirmLanguageChange")}
                   </button>
 
                   <button
@@ -233,7 +255,7 @@ const LanguageSelector = () => {
                   >
                     {resendTimer > 0
                       ? `Resend in ${resendTimer}s`
-                      : "Resend Code"}
+                      : t("modal.resend")}
                   </button>
                 </>
               )}

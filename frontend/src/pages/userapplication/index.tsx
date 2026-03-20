@@ -14,6 +14,7 @@ import axios from "axios";
 import { selectuser } from "@/Feature/Userslice";
 import { useSelector } from "react-redux";
 import { API_BASE_URL } from "@/lib/apiBase";
+import { useTranslation } from "react-i18next";
 
 type ApplicationItem = {
   _id: string;
@@ -43,50 +44,56 @@ const getStatusColor = (status: any) => {
   }
 };
 
-const getStatusLabel = (status: any) => {
+const getStatusLabel = (status: any, t: any) => {
   const normalized = normalizeStatus(status);
 
   if (normalized === "accepted") {
-    return "Selected";
+    return t("applications.selected");
   }
 
   if (normalized === "rejected") {
-    return "Rejected";
+    return t("applications.notSelected");
   }
 
-  return "Pending";
+  return t("applications.filterPending");
 };
 
-const getStatusMessage = (application: ApplicationItem) => {
+const getStatusMessage = (application: ApplicationItem, t: any) => {
   const status = normalizeStatus(application.status);
-  const company = application.company || "this company";
+  const company = application.company || t("applications.company");
 
   if (status === "accepted") {
     return {
-      title: "Selected",
-      message: `Congratulations. You are selected for ${company}. Keep your profile and communication ready for next steps.`,
+      title: t("applications.selected"),
+      message: t("applications.selectedMessage", {
+        defaultValue:
+          "Congratulations. You are selected for {{company}}. Keep your profile and communication ready for next steps.",
+        company,
+      }),
       className: "bg-green-50 border-green-200 text-green-900",
     };
   }
 
   if (status === "rejected") {
     return {
-      title: "Not Selected",
-      message:
-        "Try to improve your skills and you can be selected next time. Keep applying consistently.",
+      title: t("applications.notSelected"),
+      message: t("applications.encouragement"),
       className: "bg-orange-50 border-orange-200 text-orange-900",
     };
   }
 
   return {
-    title: "Under Review",
-    message:
-      "Your profile is still under review. Keep learning and prepare for upcoming opportunities.",
+    title: t("applications.filterPending"),
+    message: t("applications.pendingMessage", {
+      defaultValue:
+        "Your profile is still under review. Keep learning and prepare for upcoming opportunities.",
+    }),
     className: "bg-blue-50 border-blue-200 text-blue-900",
   };
 };
 
 const index = () => {
+  const { t, i18n } = useTranslation();
   const [searchTerm, setsearchTerm] = useState("");
   const [filter, setFilter] = useState("all");
   const user = useSelector(selectuser);
@@ -157,8 +164,25 @@ const index = () => {
     return searchmatch && normalizeStatus(application.status) === filter;
   });
 
+  const formatDate = (dateValue: string | undefined) => {
+    if (!dateValue) {
+      return t("common.notAvailable", { defaultValue: "N/A" });
+    }
+
+    const parsed = new Date(dateValue);
+    if (Number.isNaN(parsed.getTime())) {
+      return t("common.notAvailable", { defaultValue: "N/A" });
+    }
+
+    return parsed.toLocaleDateString(i18n.language || "en", {
+      year: "numeric",
+      month: "short",
+      day: "2-digit",
+    });
+  };
+
   const modalMessage = selectedApplication
-    ? getStatusMessage(selectedApplication)
+    ? getStatusMessage(selectedApplication, t)
     : null;
 
   return (
@@ -167,9 +191,9 @@ const index = () => {
         <div className="bg-white rounded-lg shadow-sm">
           {/* Header */}
           <div className="border-b border-gray-200 px-6 py-4">
-            <h1 className="text-2xl font-bold text-gray-900">My Applications</h1>
+            <h1 className="text-2xl font-bold text-gray-900">{t("applications.title")}</h1>
             <p className="mt-1 text-sm text-gray-500">
-              Track and manage your job and internship applications
+              {t("applications.filter")}
             </p>
           </div>
 
@@ -182,7 +206,7 @@ const index = () => {
                     type="text"
                     value={searchTerm}
                     onChange={(e) => setsearchTerm(e.target.value)}
-                    placeholder="Search by company or category..."
+                    placeholder={t("common.search")}
                     className="text-black w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                   <Mail className="absolute top-3 left-3 text-gray-400" />
@@ -197,7 +221,7 @@ const index = () => {
                       : "bg-gray-100 text-gray-800"
                   }`}
                 >
-                  All
+                  {t("applications.filterAll")}
                 </button>
                 <button
                   onClick={() => setFilter("pending")}
@@ -207,7 +231,7 @@ const index = () => {
                       : "bg-gray-100 text-gray-800"
                   }`}
                 >
-                  Pending
+                  {t("applications.filterPending")}
                 </button>
                 <button
                   onClick={() => setFilter("accepted")}
@@ -217,7 +241,7 @@ const index = () => {
                       : "bg-gray-100 text-gray-800"
                   }`}
                 >
-                  Selected
+                  {t("applications.filterSelected")}
                 </button>
                 <button
                   onClick={() => setFilter("rejected")}
@@ -227,7 +251,7 @@ const index = () => {
                       : "bg-gray-100 text-gray-800"
                   }`}
                 >
-                  Rejected
+                  {t("applications.filterRejected")}
                 </button>
               </div>
             </div>
@@ -242,31 +266,31 @@ const index = () => {
                     scope="col"
                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                   >
-                    Company & Category
+                    {t("applications.company")} & {t("applications.category")}
                   </th>
                   <th
                     scope="col"
                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                   >
-                    Applicant
+                    {t("applications.position", { defaultValue: "Applicant" })}
                   </th>
                   <th
                     scope="col"
                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                   >
-                    Applied Date
+                    {t("applications.appliedDate")}
                   </th>
                   <th
                     scope="col"
                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                   >
-                    Status
+                    {t("applications.status")}
                   </th>
                   <th
                     scope="col"
                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                   >
-                    Action
+                    {t("analytics.actions", { defaultValue: "Action" })}
                   </th>
                 </tr>
               </thead>
@@ -277,7 +301,7 @@ const index = () => {
                       colSpan={5}
                       className="px-6 py-8 text-center text-sm text-gray-500"
                     >
-                      No applications found for this filter.
+                      {t("applications.noApplications")}
                     </td>
                   </tr>
                 ) : (
@@ -317,7 +341,7 @@ const index = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center text-sm text-gray-500">
                           <Calendar className="h-4 w-4 mr-1" />
-                          {new Date(application.createdAt || 0).toISOString().split("T")[0]}
+                          {formatDate(application.createdAt)}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -326,7 +350,7 @@ const index = () => {
                             application.status
                           )}`}
                         >
-                          {getStatusLabel(application.status)}
+                          {getStatusLabel(application.status, t)}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -337,7 +361,7 @@ const index = () => {
                           }}
                           className="text-sm font-medium px-3 py-1.5 rounded-lg bg-blue-100 text-blue-800 hover:bg-blue-200 transition-colors"
                         >
-                          View More
+                          {t("applications.viewMore")}
                         </button>
                       </td>
                     </tr>
@@ -350,13 +374,13 @@ const index = () => {
           <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
             <div className="flex items-center gap-6 text-sm">
               <span className="inline-flex items-center gap-1 text-green-700">
-                <CheckCircle2 size={14} /> {statusSummary.accepted} Selected
+                <CheckCircle2 size={14} /> {statusSummary.accepted} {t("applications.selected")}
               </span>
               <span className="inline-flex items-center gap-1 text-yellow-700">
-                <Clock3 size={14} /> {statusSummary.pending} Pending
+                <Clock3 size={14} /> {statusSummary.pending} {t("applications.filterPending")}
               </span>
               <span className="inline-flex items-center gap-1 text-red-700">
-                <XCircle size={14} /> {statusSummary.rejected} Rejected
+                <XCircle size={14} /> {statusSummary.rejected} {t("applications.filterRejected")}
               </span>
             </div>
           </div>
@@ -367,11 +391,11 @@ const index = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-xl max-w-lg w-full p-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-gray-900">Application Update</h2>
+              <h2 className="text-xl font-bold text-gray-900">{t("modal.applicationUpdate")}</h2>
               <button
                 onClick={() => setIsModalOpen(false)}
                 className="text-gray-400 hover:text-gray-700"
-                aria-label="Close details"
+                aria-label={t("applications.close")}
               >
                 <X className="h-5 w-5" />
               </button>
@@ -384,10 +408,10 @@ const index = () => {
 
             <div className="mt-4 text-sm text-gray-600 space-y-1">
               <p>
-                Application: <span className="font-medium text-gray-900">{selectedApplication.company}</span>
+                {t("applications.company")}: <span className="font-medium text-gray-900">{selectedApplication.company}</span>
               </p>
               <p>
-                Category: <span className="font-medium text-gray-900">{selectedApplication.category || "N/A"}</span>
+                {t("applications.category")}: <span className="font-medium text-gray-900">{selectedApplication.category || t("common.notAvailable", { defaultValue: "N/A" })}</span>
               </p>
             </div>
 
@@ -396,7 +420,7 @@ const index = () => {
                 onClick={() => setIsModalOpen(false)}
                 className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700"
               >
-                Close
+                {t("applications.close")}
               </button>
             </div>
           </div>

@@ -14,17 +14,19 @@ import {
 import Link from "next/link";
 import axios from "axios";
 import { API_BASE_URL } from "@/lib/apiBase";
+import { useTranslation } from "react-i18next";
 
 export default function SvgSlider() {
+  const { t } = useTranslation();
   const categories = [
-    "Big Brands",
-    "Work From Home",
-    "Part-time",
-    "MBA",
-    "Engineering",
-    "Media",
-    "Design",
-    "Data Science",
+    t("home.categoryBigBrands", { defaultValue: "Big Brands" }),
+    t("home.categoryWorkFromHome", { defaultValue: "Work From Home" }),
+    t("home.categoryPartTime", { defaultValue: "Part-time" }),
+    t("home.categoryMBA", { defaultValue: "MBA" }),
+    t("home.categoryEngineering", { defaultValue: "Engineering" }),
+    t("home.categoryMedia", { defaultValue: "Media" }),
+    t("home.categoryDesign", { defaultValue: "Design" }),
+    t("home.categoryDataScience", { defaultValue: "Data Science" }),
   ];
   // const internships = [
   //   {
@@ -88,31 +90,31 @@ export default function SvgSlider() {
   const slides = [
     {
       pattern: "pattern-1",
-      title: "Start Your Career Journey",
+      title: t("home.slideCareer", { defaultValue: "Start Your Career Journey" }),
       bgColor: "bg-indigo-600",
     },
     {
       pattern: "pattern-2",
-      title: "Learn From The Best",
+      title: t("home.slideLearn", { defaultValue: "Learn From The Best" }),
       bgColor: "bg-blue-600",
     },
     {
       pattern: "pattern-3",
-      title: "Grow Your Skills",
+      title: t("home.slideGrow", { defaultValue: "Grow Your Skills" }),
       bgColor: "bg-purple-600",
     },
     {
       pattern: "pattern-4",
-      title: "Connect With Top Companies",
+      title: t("home.slideConnect", { defaultValue: "Connect With Top Companies" }),
       bgColor: "bg-teal-600",
     },
   ];
 
   const stats = [
-    { number: "300K+", label: "companies hiring" },
-    { number: "10K+", label: "new openings everyday" },
-    { number: "21Mn+", label: "active students" },
-    { number: "600K+", label: "learners" },
+    { number: "300K+", label: t("home.statCompaniesHiring", { defaultValue: "companies hiring" }) },
+    { number: "10K+", label: t("home.statOpeningsDaily", { defaultValue: "new openings everyday" }) },
+    { number: "21Mn+", label: t("home.statActiveStudents", { defaultValue: "active students" }) },
+    { number: "600K+", label: t("home.statLearners", { defaultValue: "learners" }) },
   ];
   const [internships, setinternship] = useState<any>([]);
   const [jobs, setjob] = useState<any>([]);
@@ -146,17 +148,15 @@ export default function SvgSlider() {
         <div className="text-center mb-16">
           <h1 className="text-5xl md:text-6xl font-extrabold mb-6">
             <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
-              Make Your Dream Career
+              {t("home.hero")}
             </span>
-            <br />
-            <span className="text-gray-900">A Reality</span>
           </h1>
           <p className="text-xl md:text-2xl text-gray-600 mb-3">
-            Discover amazing opportunities at top companies
+            {t("home.heroDesc")}
           </p>
           <div className="flex items-center justify-center gap-2 text-orange-600 font-semibold">
             <span className="text-2xl">🔥</span>
-            <span className="text-lg">Trending on InternSite</span>
+            <span className="text-lg">{t("home.trending")}</span>
           </div>
         </div>
         
@@ -259,10 +259,12 @@ export default function SvgSlider() {
       <div className="mb-16">
         <div className="bg-white rounded-2xl shadow-lg p-8">
           <h2 className="text-3xl font-bold text-gray-900 mb-8">
-            Latest Internships on <span className="text-blue-600">InternSite</span>
+            {t("home.internships")} <span className="text-blue-600">InternSite</span>
           </h2>
           <div className="flex flex-wrap gap-3 items-center">
-            <span className="text-sm font-bold text-gray-500 uppercase tracking-wider">Popular Categories:</span>
+            <span className="text-sm font-bold text-gray-500 uppercase tracking-wider">
+              {t("home.categories")}
+            </span>
             {categories.map((category) => (
               <button
                 key={category}
@@ -288,7 +290,9 @@ export default function SvgSlider() {
           >
             <div className="flex items-center gap-2 text-green-600 mb-4 bg-green-50 px-3 py-1.5 rounded-lg w-fit">
               <ArrowUpRight size={18} />
-              <span className="font-semibold text-sm">Actively Hiring</span>
+              <span className="font-semibold text-sm">
+                {t("detail.activelyHiring", { defaultValue: "Actively Hiring" })}
+              </span>
             </div>
             <h3 className="text-xl font-bold mb-2 text-gray-900 group-hover:text-blue-600 transition-colors">
               {internship.title}
@@ -310,13 +314,13 @@ export default function SvgSlider() {
             </div>
             <div className="flex items-center justify-between pt-4 border-t border-gray-100">
               <span className="px-4 py-1.5 bg-blue-50 text-blue-700 rounded-lg text-sm font-semibold">
-                Internship
+                {t("home.internships")}
               </span>
               <Link
                 href={`/detailiternship/${internship._id}`}
                 className="text-blue-600 hover:text-blue-700 flex items-center gap-1 font-semibold group-hover:gap-2 transition-all"
               >
-                View details
+                {t("home.viewDetails")}
                 <ChevronRight size={18} />
               </Link>
             </div>
@@ -326,7 +330,7 @@ export default function SvgSlider() {
       {/* Jobs grid   */}
       <div className="mb-20">
         <h2 className="text-3xl font-bold text-gray-900 mb-8">
-          Latest <span className="text-indigo-600">Job Opportunities</span>
+          <span className="text-indigo-600">{t("home.jobs")}</span>
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {filteredJobs.map((job: any, index: any) => (
@@ -336,7 +340,9 @@ export default function SvgSlider() {
             >
               <div className="flex items-center gap-2 text-green-600 mb-4 bg-green-50 px-3 py-1.5 rounded-lg w-fit">
                 <ArrowUpRight size={18} />
-                <span className="font-semibold text-sm">Actively Hiring</span>
+                <span className="font-semibold text-sm">
+                  {t("detail.activelyHiring", { defaultValue: "Actively Hiring" })}
+                </span>
               </div>
               <h3 className="text-xl font-bold mb-2 text-gray-900 group-hover:text-indigo-600 transition-colors">
                 {job.title}
@@ -358,13 +364,13 @@ export default function SvgSlider() {
               </div>
               <div className="flex items-center justify-between pt-4 border-t border-gray-100">
                 <span className="px-4 py-1.5 bg-indigo-50 text-indigo-700 rounded-lg text-sm font-semibold">
-                  Full Time Job
+                  {t("home.jobs")}
                 </span>
                 <Link
                   href={`/detailjob/${job._id}`}
                   className="text-indigo-600 hover:text-indigo-700 flex items-center gap-1 font-semibold group-hover:gap-2 transition-all"
                 >
-                  View details
+                  {t("home.viewDetails")}
                   <ChevronRight size={18} />
                 </Link>
               </div>
@@ -374,7 +380,9 @@ export default function SvgSlider() {
       </div>
       {/* Stat Section  */}
       <div className="bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 rounded-3xl shadow-2xl p-12">
-        <h2 className="text-3xl font-bold text-white text-center mb-12">Our Impact in Numbers</h2>
+        <h2 className="text-3xl font-bold text-white text-center mb-12">
+          {t("home.impactNumbers", { defaultValue: "Our Impact in Numbers" })}
+        </h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
           {stats.map((stat, index) => (
             <div key={index} className="text-center group">

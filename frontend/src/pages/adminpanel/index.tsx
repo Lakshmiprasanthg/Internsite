@@ -10,6 +10,7 @@ import {
 import Link from 'next/link';
 import axios from 'axios';
 import { API_BASE_URL } from '@/lib/apiBase';
+import { useTranslation } from 'react-i18next';
 
 const normalizeStatus = (status: string | undefined) => {
   const normalized = String(status || 'pending').toLowerCase();
@@ -17,6 +18,7 @@ const normalizeStatus = (status: string | undefined) => {
 };
 
 const index = () => {
+  const { t } = useTranslation();
     const [counts, setCounts] = useState({
       totalApplications: 0,
       activeJobs: 0,
@@ -60,68 +62,68 @@ const index = () => {
     const stats = useMemo(
       () => [
         {
-          label: 'Total Applications',
+          label: t('adminPanel.totalApplications'),
           value: counts.totalApplications,
-          subtitle: 'Current records in applications',
+          subtitle: t('adminPanel.totalApplications'),
         },
         {
-          label: 'Active Jobs',
+          label: t('adminPanel.activeJobs'),
           value: counts.activeJobs,
-          subtitle: 'Current records in jobs',
+          subtitle: t('adminPanel.activeJobs'),
         },
         {
-          label: 'Active Internships',
+          label: t('adminPanel.activeInternships'),
           value: counts.activeInternships,
-          subtitle: 'Current records in internships',
+          subtitle: t('adminPanel.activeInternships'),
         },
         {
-          label: 'Accepted Applications',
+          label: t('adminPanel.acceptedApplications'),
           value: counts.acceptedApplications,
-          subtitle: 'Selected candidates so far',
+          subtitle: t('adminPanel.acceptedApplications'),
         },
       ],
-      [counts]
+      [counts, t]
     );
     
       const menuItems = [
         {
-          title: 'View Applications',
-          description: 'View and manage all applications from candidates',
+          title: t('adminPanel.viewApplications'),
+          description: t('adminPanel.viewApplications'),
           icon: Mail,
           link: '/applications',
           color: 'bg-blue-600',
         },
         {
-          title: 'Post Job',
-          description: 'Create and publish new job opportunities',
+          title: t('adminPanel.postJob'),
+          description: t('adminPanel.postJob'),
           icon: Briefcase,
           link: '/postJob',
           color: 'bg-green-600',
         },
         {
-          title: 'Post Internship',
-          description: 'Create and manage internship positions',
+          title: t('adminPanel.postInternship'),
+          description: t('adminPanel.postInternship'),
           icon: Send,
           link: '/postInternship',
           color: 'bg-purple-600',
         },
         {
-          title: 'Manage Users',
-          description: 'View and manage user accounts',
+          title: t('adminPanel.manageUsers'),
+          description: t('adminPanel.manageUsers'),
           icon: Users,
           link: '/users',
           color: 'bg-orange-600',
         },
         {
-          title: 'Analytics',
-          description: 'View detailed reports and statistics',
+          title: t('adminPanel.analytics'),
+          description: t('adminPanel.analytics'),
           icon: BarChart,
           link: '/analytics',
           color: 'bg-red-600',
         },
         {
-          title: 'Settings',
-          description: 'Configure system preferences',
+          title: t('adminPanel.settings'),
+          description: t('adminPanel.settings'),
           icon: Settings,
           link: '/settings',
           color: 'bg-gray-600',
@@ -133,10 +135,10 @@ const index = () => {
       {/* Header */}
       <div className="mb-12">
         <h1 className="text-4xl font-extrabold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-          Admin Dashboard
+          {t('adminPanel.title')}
         </h1>
         <p className="mt-2 text-lg text-gray-600">
-          Manage your jobs, internships, and applications efficiently
+          {t('adminPanel.menu')}
         </p>
       </div>
 
