@@ -10,6 +10,7 @@ import { adminLogout, logout, selectIsAdmin, selectuser } from "@/Feature/Usersl
 import { useRouter } from "next/router";
 import axios from "axios";
 import { API_BASE_URL } from "@/lib/apiBase";
+import LanguageSelector from "./LanguageSelector";
 
 interface User {
   name: string;
@@ -290,6 +291,7 @@ const Navbar = () => {
             <div className="flex items-center space-x-3">
               {user ? (
                 <div className="flex items-center space-x-3">
+                  <LanguageSelector />
                   <div className="relative" ref={notificationRef}>
                     <button
                       type="button"
@@ -375,6 +377,7 @@ const Navbar = () => {
                 </div>
               ) : isAdmin ? (
                 <div className="flex items-center space-x-3">
+                  <LanguageSelector />
                   <Link
                     href="/adminpanel"
                     className="px-5 py-2.5 text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 rounded-xl font-medium transition-all duration-200"
@@ -390,6 +393,7 @@ const Navbar = () => {
                 </div>
               ) : (
                 <>
+                  <LanguageSelector />
                   <button
                     onClick={handlelogin}
                     disabled={isGoogleLoading}

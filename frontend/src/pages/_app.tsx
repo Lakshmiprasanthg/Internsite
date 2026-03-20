@@ -14,9 +14,12 @@ import {
   selectIsAdmin,
   selectuser,
 } from "@/Feature/Userslice";
+import { loadLanguageFromStorage, selectLanguage } from "@/Feature/Languageslice";
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useRouter } from "next/router";
+import { I18nextProvider } from "react-i18next";
+import i18n from "@/i18n/config";
 
 const ADMIN_ONLY_ROUTES = [
   "/adminpanel",
@@ -61,6 +64,18 @@ function RouteAccessGuard() {
 export default function App({ Component, pageProps }: AppProps) {
   function AuthListener() {
     const dispatch = useDispatch();
+    const currentLanguage = useSelector(selectLanguage);
+
+    useEffect(() => {
+      // Load language from localStorage
+      dispatch(loadLanguageFromStorage() as any);
+    }, [dispatch]);
+
+    // Sync Redux language state with i18n
+    useEffect(() => {
+      i18n.changeLanguage(currentLanguage);
+    }, [currentLanguage]);
+
     useEffect(() => {
       if (typeof window !== "undefined") {
         const isAdminLoggedIn = localStorage.getItem("isAdminLoggedIn") === "true";
@@ -94,14 +109,16 @@ export default function App({ Component, pageProps }: AppProps) {
 
   return (
     <Provider store={store}>
-      <AuthListener />
-      <RouteAccessGuard />
-      <div className="bg-white">
-        <ToastContainer/>
-        <Navbar />
-        <Component {...pageProps} />
-        <Footer />
-      </div>
+      <I18nextProvider i18n={i18n}>
+        <AuthListener />
+        <RouteAccessGuard />
+        <div className="bg-white">
+          <ToastContainer/>
+          <Navbar />
+          <Component {...pageProps} />
+          <Footer />
+        </div>
+      </I18nextProvider>
     </Provider>
   );
 }
