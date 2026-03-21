@@ -1,12 +1,10 @@
 const express = require("express");
 const router = express.Router();
-const sgMail = require("@sendgrid/mail");
+const { Resend } = require("resend");
 const Otp = require("../Model/Otp");
 
-// Initialize SendGrid with API key
-if (process.env.SENDGRID_API_KEY) {
-  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-}
+// Initialize Resend with API key
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 // Generate random 6-digit OTP
 const generateOTP = () => {
@@ -22,8 +20,8 @@ router.post("/send", async (req, res) => {
   }
 
   try {
-    // Check if SendGrid API key is configured
-    if (!process.env.SENDGRID_API_KEY) {
+    // Check if Resend API key is configured
+    if (!process.env.RESEND_API_KEY) {
       return res.status(500).json({ error: "Email service not configured" });
     }
 
@@ -39,10 +37,10 @@ router.post("/send", async (req, res) => {
       otp,
     });
 
-    // Send OTP via SendGrid
-    const msg = {
-      to: email,
+    // Send OTP via Resend
+    const data = await resend.emails.send({
       from: "noreply@internsite.com",
+      to: email,
       subject: "Your Internsite Language Change Verification Code",
       html: `
         <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #f5f5f5;">
@@ -57,9 +55,13 @@ router.post("/send", async (req, res) => {
           </div>
         </div>
       `,
-    };
+    });
 
-    await sgMail.send(msg);
+    if (data.error) {
+      return res.status(500).json({
+        error: "Failed to send OTP: " + data.error.message,
+      });
+    }
 
     res.status(200).json({
       success: true,
