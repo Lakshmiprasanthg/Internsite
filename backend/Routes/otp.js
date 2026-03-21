@@ -17,7 +17,7 @@ const sendEmailViaBrevo = async (to, subject, htmlContent) => {
   const data = {
     sender: {
       name: "Internsite",
-      email: "noreply@internsite.com",
+      email: "internsite341@gmail.com",
     },
     to: [
       {
