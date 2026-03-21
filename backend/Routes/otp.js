@@ -3,12 +3,17 @@ const router = express.Router();
 const { Resend } = require("resend");
 const Otp = require("../Model/Otp");
 
-// Initialize Resend with API key
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 // Generate random 6-digit OTP
 const generateOTP = () => {
   return Math.floor(100000 + Math.random() * 900000).toString();
+};
+
+// Get Resend instance (lazy initialization)
+const getResendClient = () => {
+  if (!process.env.RESEND_API_KEY) {
+    throw new Error("RESEND_API_KEY is not configured");
+  }
+  return new Resend(process.env.RESEND_API_KEY);
 };
 
 // Send OTP to user email
@@ -37,9 +42,10 @@ router.post("/send", async (req, res) => {
       otp,
     });
 
-    // Send OTP via Resend
+    // Get Resend client and send OTP
+    const resend = getResendClient();
     const data = await resend.emails.send({
-      from: "noreply@internsite.com",
+      from: "onboarding@resend.dev",
       to: email,
       subject: "Your Internsite Language Change Verification Code",
       html: `
