@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const nodemailer = require("nodemailer");
+const axios = require("axios");
 const Otp = require("../Model/Otp");
 
 // Generate random 6-digit OTP
@@ -8,17 +8,39 @@ const generateOTP = () => {
   return Math.floor(100000 + Math.random() * 900000).toString();
 };
 
-// Get Nodemailer transporter (lazy initialization)
-const getMailTransporter = () => {
-  return nodemailer.createTransport({
-    host: "smtp.gmail.com",
-    port: 587,
-    secure: false, // Use STARTTLS
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASSWORD,
+// Send email via Brevo API
+const sendEmailViaBrevo = async (to, subject, htmlContent) => {
+  if (!process.env.BREVO_API_KEY) {
+    throw new Error("BREVO_API_KEY is not configured");
+  }
+
+  const data = {
+    sender: {
+      name: "Internsite",
+      email: "noreply@internsite.com",
     },
-  });
+    to: [
+      {
+        email: to,
+      },
+    ],
+    subject: subject,
+    htmlContent: htmlContent,
+  };
+
+  try {
+    const response = await axios.post("https://api.brevo.com/v3/smtp/email", data, {
+      headers: {
+        "api-key": process.env.BREVO_API_KEY,
+        "Content-Type": "application/json",
+      },
+    });
+    return response.data;
+  } catch (error) {
+    throw new Error(
+      error.response?.data?.message || error.message || "Failed to send email"
+    );
+  }
 };
 
 // Send OTP to user email
@@ -30,8 +52,8 @@ router.post("/send", async (req, res) => {
   }
 
   try {
-    // Check if Gmail credentials are configured
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
+    // Check if Brevo API key is configured
+    if (!process.env.BREVO_API_KEY) {
       return res.status(500).json({ error: "Email service not configured" });
     }
 
@@ -47,29 +69,27 @@ router.post("/send", async (req, res) => {
       otp,
     });
 
-    // Get transporter and send OTP email
-    const transporter = getMailTransporter();
-    
-    const mailOptions = {
-      from: process.env.EMAIL_USER,
-      to: email,
-      subject: "Your Internsite Language Change Verification Code",
-      html: `
-        <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #f5f5f5;">
-          <div style="background-color: white; padding: 20px; border-radius: 8px; max-width: 500px;">
-            <h2 style="color: #333;">Email Verification</h2>
-            <p style="color: #666;">You requested to change your website language. Use the following verification code to proceed:</p>
-            <div style="background-color: #f0f0f0; padding: 15px; border-radius: 5px; text-align: center; margin: 20px 0;">
-              <h1 style="color: #0066cc; margin: 0; letter-spacing: 5px;">${otp}</h1>
-            </div>
-            <p style="color: #666;">This code expires in 10 minutes.</p>
-            <p style="color: #999; font-size: 12px;">If you didn't request this, please ignore this email.</p>
+    // Prepare email content
+    const htmlContent = `
+      <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #f5f5f5;">
+        <div style="background-color: white; padding: 20px; border-radius: 8px; max-width: 500px;">
+          <h2 style="color: #333;">Email Verification</h2>
+          <p style="color: #666;">You requested to change your website language. Use the following verification code to proceed:</p>
+          <div style="background-color: #f0f0f0; padding: 15px; border-radius: 5px; text-align: center; margin: 20px 0;">
+            <h1 style="color: #0066cc; margin: 0; letter-spacing: 5px;">${otp}</h1>
           </div>
+          <p style="color: #666;">This code expires in 10 minutes.</p>
+          <p style="color: #999; font-size: 12px;">If you didn't request this, please ignore this email.</p>
         </div>
-      `,
-    };
+      </div>
+    `;
 
-    await transporter.sendMail(mailOptions);
+    // Send email via Brevo API
+    await sendEmailViaBrevo(
+      email,
+      "Your Internsite Language Change Verification Code",
+      htmlContent
+    );
 
     res.status(200).json({
       success: true,
