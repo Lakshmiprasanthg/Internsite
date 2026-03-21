@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { Resend } = require("resend");
+const nodemailer = require("nodemailer");
 const Otp = require("../Model/Otp");
 
 // Generate random 6-digit OTP
@@ -8,12 +8,17 @@ const generateOTP = () => {
   return Math.floor(100000 + Math.random() * 900000).toString();
 };
 
-// Get Resend instance (lazy initialization)
-const getResendClient = () => {
-  if (!process.env.RESEND_API_KEY) {
-    throw new Error("RESEND_API_KEY is not configured");
-  }
-  return new Resend(process.env.RESEND_API_KEY);
+// Get Nodemailer transporter (lazy initialization)
+const getMailTransporter = () => {
+  return nodemailer.createTransport({
+    host: "smtp.gmail.com",
+    port: 587,
+    secure: false, // Use STARTTLS
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASSWORD,
+    },
+  });
 };
 
 // Send OTP to user email
@@ -25,8 +30,8 @@ router.post("/send", async (req, res) => {
   }
 
   try {
-    // Check if Resend API key is configured
-    if (!process.env.RESEND_API_KEY) {
+    // Check if Gmail credentials are configured
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
       return res.status(500).json({ error: "Email service not configured" });
     }
 
@@ -42,10 +47,11 @@ router.post("/send", async (req, res) => {
       otp,
     });
 
-    // Get Resend client and send OTP
-    const resend = getResendClient();
-    const data = await resend.emails.send({
-      from: "onboarding@resend.dev",
+    // Get transporter and send OTP email
+    const transporter = getMailTransporter();
+    
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
       to: email,
       subject: "Your Internsite Language Change Verification Code",
       html: `
@@ -61,22 +67,18 @@ router.post("/send", async (req, res) => {
           </div>
         </div>
       `,
-    });
+    };
 
-    if (data.error) {
-      return res.status(500).json({
-        error: "Failed to send OTP: " + data.error.message,
-      });
-    }
+    await transporter.sendMail(mailOptions);
 
     res.status(200).json({
       success: true,
       message: "OTP sent successfully to your email",
     });
   } catch (error) {
-    console.error("Error sending OTP:", error);
+    console.error("Error sending OTP:", error.message);
     res.status(500).json({
-      error: "Failed to send OTP. Please try again later.",
+      error: "Failed to send OTP: " + error.message,
     });
   }
 });
