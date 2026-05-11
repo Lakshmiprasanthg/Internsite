@@ -69,6 +69,9 @@ const LanguageSelector = () => {
       });
 
       if (response.data.success) {
+        if (response.data?.debugOtp) {
+          setOtp(response.data.debugOtp);
+        }
         setOtpSent(true);
         setResendTimer(300); // 5 minutes
       }

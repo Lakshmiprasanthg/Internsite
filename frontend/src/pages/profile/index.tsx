@@ -23,6 +23,16 @@ type ApplicationRecord = {
   };
 };
 
+type ResumeRecord = {
+  _id: string;
+  title?: string;
+  pdfUrl?: string;
+  createdAt?: string;
+  payment?: {
+    status?: string;
+  };
+};
+
 const normalizeStatus = (status: string | undefined) => {
   const normalized = String(status || "pending").toLowerCase();
   return normalized === "approved" ? "accepted" : normalized;
@@ -38,6 +48,7 @@ const index = () => {
   // });
   const user = useSelector(selectuser);
   const [applications, setApplications] = useState<ApplicationRecord[]>([]);
+  const [resumes, setResumes] = useState<ResumeRecord[]>([]);
 
   useEffect(() => {
     const fetchUserApplications = async () => {
@@ -51,6 +62,25 @@ const index = () => {
 
     fetchUserApplications();
   }, []);
+
+  useEffect(() => {
+    const fetchUserResumes = async () => {
+      if (!user?.email) {
+        return;
+      }
+
+      try {
+        const response = await axios.get(
+          `${API_BASE_URL}/api/resume/user/${encodeURIComponent(user.email)}`
+        );
+        setResumes(Array.isArray(response.data) ? response.data : []);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    fetchUserResumes();
+  }, [user?.email]);
 
   const userApplications = useMemo(() => {
     const userEmail = String(user?.email || "").toLowerCase();
@@ -86,6 +116,8 @@ const index = () => {
       { accepted: 0, rejected: 0, pending: 0 }
     );
   }, [userApplications]);
+
+  const latestResume = resumes[0];
 
   return (
     <div className="min-h-screen bg-gray-50 py-12">
@@ -141,7 +173,7 @@ const index = () => {
               </div>
 
               {/* Actions */}
-              <div className="flex justify-center pt-4">
+              <div className="flex flex-col sm:flex-row justify-center gap-3 pt-4">
                 <Link
                   href="/userapplication"
                   className="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors duration-200"
@@ -149,6 +181,38 @@ const index = () => {
                   {t("profile.myApplications")}
                   <ExternalLink className="ml-2 h-4 w-4" />
                 </Link>
+                <Link
+                  href="/resume-builder"
+                  className="inline-flex items-center px-6 py-3 bg-gray-900 text-white font-medium rounded-lg hover:bg-gray-800 transition-colors duration-200"
+                >
+                  Create Resume (Premium)
+                  <ExternalLink className="ml-2 h-4 w-4" />
+                </Link>
+              </div>
+
+              {/* Resume Attachment */}
+              <div className="bg-gray-50 rounded-xl p-5 border border-gray-100">
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <p className="text-sm font-semibold text-gray-900">Resume Attachment</p>
+                    <p className="text-sm text-gray-600">
+                      {latestResume
+                        ? `Latest resume: ${latestResume.title || "Professional Resume"}`
+                        : "No premium resume attached yet."}
+                    </p>
+                  </div>
+                  {latestResume?.pdfUrl ? (
+                    <a
+                      href={`${API_BASE_URL}${latestResume.pdfUrl}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors duration-200"
+                    >
+                      View Resume
+                      <ExternalLink className="ml-2 h-4 w-4" />
+                    </a>
+                  ) : null}
+                </div>
               </div>
             </div>
           </div>

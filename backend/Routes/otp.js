@@ -3,6 +3,9 @@ const router = express.Router();
 const axios = require("axios");
 const Otp = require("../Model/Otp");
 
+const isOtpDebugMode =
+  process.env.NODE_ENV !== "production" || process.env.ALLOW_OTP_DEBUG === "true";
+
 // Generate random 6-digit OTP
 const generateOTP = () => {
   return Math.floor(100000 + Math.random() * 900000).toString();
@@ -46,19 +49,15 @@ const sendEmailViaBrevo = async (to, subject, htmlContent) => {
 // Send OTP to user email
 router.post("/send", async (req, res) => {
   const { email } = req.body;
+  let otp = "";
 
   if (!email) {
     return res.status(400).json({ error: "Email is required" });
   }
 
   try {
-    // Check if Brevo API key is configured
-    if (!process.env.BREVO_API_KEY) {
-      return res.status(500).json({ error: "Email service not configured" });
-    }
-
     // Generate OTP
-    const otp = generateOTP();
+    otp = generateOTP();
 
     // Delete any existing OTP for this email
     await Otp.deleteMany({ email: email.toLowerCase() });
@@ -84,19 +83,33 @@ router.post("/send", async (req, res) => {
       </div>
     `;
 
-    // Send email via Brevo API
-    await sendEmailViaBrevo(
-      email,
-      "Your Internsite Language Change Verification Code",
-      htmlContent
-    );
+    // Send email via Brevo API when available.
+    if (process.env.BREVO_API_KEY) {
+      await sendEmailViaBrevo(
+        email,
+        "Your Internsite Language Change Verification Code",
+        htmlContent
+      );
+    } else if (!isOtpDebugMode) {
+      return res.status(500).json({ error: "Email service not configured" });
+    }
 
     res.status(200).json({
       success: true,
       message: "OTP sent successfully to your email",
+      ...(isOtpDebugMode ? { debugOtp: otp } : {}),
     });
   } catch (error) {
     console.error("Error sending OTP:", error.message);
+
+    if (isOtpDebugMode && otp) {
+      return res.status(200).json({
+        success: true,
+        message: "OTP generated for local testing",
+        debugOtp: otp,
+      });
+    }
+
     res.status(500).json({
       error: "Failed to send OTP: " + error.message,
     });
